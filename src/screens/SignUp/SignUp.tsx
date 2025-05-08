@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Textfield } from "../../components/atoms/Textfield/Textfield";
 import { Button } from "../../components/atoms/Button/Button";
 import { LoginButton } from "../../components/atoms/LoginButton/LoginButton";
+import { useNavigation } from "@react-navigation/native";
 
 const schema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters long" }),
@@ -21,6 +22,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export const SignUp = () => {
+  const navigation = useNavigation()
   const {
     control,
     handleSubmit,
@@ -32,6 +34,7 @@ export const SignUp = () => {
 
   const onSubmit = (data: FormData) => {
     console.log("Submitted:", data);
+    navigation.navigate("Verification")
   };
 
   return (
@@ -68,7 +71,7 @@ export const SignUp = () => {
             {errors.password && <Text style={styles.error}>{errors.password.message}</Text>}
           </View>
         </View>
-        <Button onClick={handleSubmit(onSubmit)} label="SIGN UP" disabled={!isValid} />
+        <Button onClick={handleSubmit(onSubmit)} label="SIGN UP" disabled={!isValid} variant="primary"/>
         <Text style={styles.continueLabel}>Or Continue With</Text>
         <View style={styles.signUpByBtnContainer}>
           <LoginButton label="G" variant="red" onClick={() => console.log("test")} />
@@ -77,8 +80,8 @@ export const SignUp = () => {
       </View>
       <View style={styles.haveAnAccStyles}>
         <Text>Already Have An Account? </Text>
-        <TouchableOpacity>
-          <Text style={styles.loginStyle}>Log In</Text>
+        <TouchableOpacity onPress={()=>navigation.navigate("SignIn")}>
+          <Text style={styles.loginStyle}>Sign In</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
