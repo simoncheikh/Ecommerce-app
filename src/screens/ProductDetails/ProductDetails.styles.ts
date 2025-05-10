@@ -1,5 +1,9 @@
 import { StyleSheet } from "react-native";
 import { GlobalStyles } from "../../styles/GobalStyles";
+import { scale, verticalScale, moderateScale } from "../../utils/Scale";
+
+const customFonts = GlobalStyles.fonts;
+
 
 export const styles = StyleSheet.create({
   container: {
@@ -7,92 +11,94 @@ export const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   content: {
-    padding: 20,
-    paddingBottom: 40,
+    padding: scale(20),
+    paddingBottom: verticalScale(40),
   },
   image: {
     width: "100%",
-    height: 300,
-    borderRadius: 12,
-    marginBottom: 20,
+    height: verticalScale(300),
+    borderRadius: scale(12),
+    marginBottom: verticalScale(20),
   },
   title: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: 8,
+    fontSize: moderateScale(22),
+    marginBottom: verticalScale(8),
+    fontFamily: customFonts.regular.title
   },
   description: {
-    fontSize: 16,
+    fontSize: moderateScale(16),
     color: "#666",
-    marginBottom: 10,
+    marginBottom: verticalScale(10),
+    fontFamily: customFonts.regular.normalText
   },
   price: {
-    fontSize: 20,
-    fontWeight: "600",
-    marginBottom: 6,
+    fontSize: moderateScale(20),
+    marginBottom: verticalScale(6),
+    fontFamily: customFonts.regular.normalText
   },
   stock: {
-    fontSize: 14,
+    fontSize: moderateScale(14),
     color: "green",
-    marginBottom: 20,
+    marginBottom: verticalScale(20),
+    fontFamily: customFonts.regular.normalText
   },
   quantityContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-start",
-    marginBottom: 24,
+    marginBottom: verticalScale(24),
   },
   qtyButton: {
-    width: 40,
-    height: 40,
+    width: scale(40),
+    height: verticalScale(40),
     backgroundColor: "#eee",
-    borderRadius: 8,
+    borderRadius: scale(8),
     alignItems: "center",
     justifyContent: "center",
   },
   qtyText: {
-    fontSize: 22,
+    fontSize: moderateScale(22),
     fontWeight: "600",
   },
   qtyCount: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginHorizontal: 16,
+    fontSize: moderateScale(18),
+    fontFamily: customFonts.regular.normalText,
+    marginHorizontal: scale(16),
   },
   buttonContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
+    gap: scale(16),
   },
   iconButton: {
-    padding: 12,
+    padding: scale(12),
     backgroundColor: "#eee",
-    borderRadius: 12,
+    borderRadius: scale(12),
   },
   iconImage: {
-    width: 24,
-    height: 24,
+    width: scale(24),
+    height: scale(24),
     tintColor: "#333",
   },
   cartMainButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor:GlobalStyles.color.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 12,
+    backgroundColor: GlobalStyles.color.primary,
+    paddingHorizontal: scale(20),
+    paddingVertical: verticalScale(12),
+    borderRadius: scale(12),
     flex: 1,
     justifyContent: "center",
   },
   iconImageSmall: {
-    width: 22,
-    height: 22,
+    width: scale(22),
+    height: scale(22),
     tintColor: "#fff",
   },
   cartText: {
     color: "#fff",
-    fontWeight: "600",
-    fontSize: 16,
-    marginLeft: 10,
+    fontFamily: customFonts.regular.normalText,
+    fontSize: moderateScale(16),
+    marginLeft: scale(10),
   },
 });

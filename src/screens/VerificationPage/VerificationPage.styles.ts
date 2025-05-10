@@ -1,6 +1,11 @@
 import { StyleSheet } from "react-native";
 import { GlobalStyles } from "../../styles/GobalStyles";
 
+
+
+const customFonts = GlobalStyles.fonts;
+
+
 export const styles = StyleSheet.create({
     container: {
         alignItems: "center",
@@ -12,18 +17,20 @@ export const styles = StyleSheet.create({
     },
     titleContainer: {
         flex: 1,
-        justifyContent: "center"
+        justifyContent: "center",
     },
     title: {
         fontSize: 24,
-        fontWeight: "bold",
         marginBottom: 10,
-        textAlign: "center"
+        textAlign: "center",
+        fontFamily: customFonts.regular.title,
     },
     subtitle: {
         fontSize: 16,
         color: "#666",
         marginBottom: 30,
+        fontFamily: customFonts.regular.normalText,
+
     },
     codeContainer: {
         flex: 3,
@@ -47,6 +54,7 @@ export const styles = StyleSheet.create({
         color: "red",
         marginBottom: 10,
         marginTop: 10,
+        fontFamily: customFonts.regular.normalText,
         textAlign: "center"
     },
     button: {
@@ -55,13 +63,15 @@ export const styles = StyleSheet.create({
     },
     timerText: {
         color: "#888",
+        fontFamily: customFonts.regular.normalText,
         fontSize: 14,
     },
     resendText: {
+        fontFamily: customFonts.regular.normalText,
         fontSize: 14,
     },
     resendLink: {
         color: GlobalStyles.color.primary,
-        fontWeight: "600",
+        fontFamily: customFonts.regular.normalText,
     },
 })

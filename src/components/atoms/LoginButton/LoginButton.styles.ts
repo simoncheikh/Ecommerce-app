@@ -1,6 +1,8 @@
 import { StyleSheet } from "react-native";
 import { GlobalStyles } from "../../../styles/GobalStyles";
 
+const customFonts = GlobalStyles.fonts;
+
 
 export const styles = StyleSheet.create({
     signUpBtn: {
@@ -14,6 +16,7 @@ export const styles = StyleSheet.create({
     },
     btnLabel: {
         color: "white",
-        fontSize: 20
+        fontSize: 20,
+        fontFamily:customFonts.regular.normalText
     },
 })

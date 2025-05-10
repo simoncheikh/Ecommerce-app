@@ -10,8 +10,8 @@ export const styles = StyleSheet.create({
         flex: 1
     },
     productCard: {
-        paddingBottom: 100,
-        gap: 50
+        paddingBottom: 10,
+        gap: 20
     },
     filterContainer: {
         display: "flex",
@@ -20,7 +20,4 @@ export const styles = StyleSheet.create({
         width: "100%",
         padding: "4%"
     },
-    totalLabel: {
-
-    }
 })

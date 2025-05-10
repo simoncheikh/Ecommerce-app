@@ -1,4 +1,8 @@
 import { StyleSheet } from "react-native";
+import { GlobalStyles } from "../../../styles/GobalStyles";
+
+const customFonts = GlobalStyles.fonts;
+
 
 export const styles = StyleSheet.create({
     container: {
@@ -7,8 +11,8 @@ export const styles = StyleSheet.create({
       backgroundColor: '#f2f2f2',
       borderRadius: 10,
       paddingHorizontal: 10,
-      paddingVertical: 8,
-      marginBottom: 12,
+      // paddingVertical: 8,
+      // marginBottom: 12,
       width:"100%"
     },
     icon: {
@@ -21,6 +25,7 @@ export const styles = StyleSheet.create({
       flex: 1,
       fontSize: 16,
       color: '#000',
+      fontFamily:customFonts.regular.normalText
     },
     clearButton: {
       paddingLeft: 6,

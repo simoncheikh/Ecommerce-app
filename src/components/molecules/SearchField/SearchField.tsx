@@ -9,8 +9,6 @@ import {
 } from 'react-native';
 import { SearchFieldProps } from './SearchField.type';
 
-
-
 export const SearchField: React.FC<SearchFieldProps> = ({
   value,
   onChangeText,

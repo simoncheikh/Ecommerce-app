@@ -7,14 +7,16 @@ import { Button } from "../../components/atoms/Button/Button";
 import { LoginButton } from "../../components/atoms/LoginButton/LoginButton";
 import { styles } from "./SignIn.styles";
 import { useAuth } from "../../store/AuthContext/AuthContext";
+import { GlobalStyles } from "../../styles/GobalStyles";
+import { useThemeContext } from "../../store/themeContext/ThemeContext";
 
 const schema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters long")
-    // .regex(/[A-Z]/, "Must contain an uppercase letter")
-    // .regex(/[^A-Za-z0-9]/, "Must contain a special character"),
+  // .regex(/[A-Z]/, "Must contain an uppercase letter")
+  // .regex(/[^A-Za-z0-9]/, "Must contain a special character"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -40,11 +42,14 @@ export const SignIn = ({ navigation }: any) => {
     }
   };
 
+  const { theme } = useThemeContext();
+
+  const isDark = theme === 'dark';
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? GlobalStyles.theme.darkTheme.backgroundColor : GlobalStyles.theme.lightTheme.backgroundColor }]}>
       <View style={styles.innerContainer}>
         <View style={styles.titleContainer}>
-          <Text style={styles.titleLabel}>Welcome Back!</Text>
+          <Text style={[styles.titleLabel, { color: isDark ? GlobalStyles.theme.darkTheme.color : GlobalStyles.theme.lightTheme.color }]}>Welcome Back!</Text>
           <Text style={styles.descLabel}>Sign in to your account.</Text>
         </View>
         <View style={styles.fieldsContainer}>
@@ -73,6 +78,7 @@ export const SignIn = ({ navigation }: any) => {
           onClick={handleSubmit(handleLogin)}
           label="SIGN IN"
           disabled={!isValid}
+          variant="primary"
         />
         <Text style={styles.continueLabel}>Or Continue With</Text>
         <View style={styles.signUpByBtnContainer}>
@@ -81,7 +87,7 @@ export const SignIn = ({ navigation }: any) => {
         </View>
       </View>
       <View style={styles.haveAnAccStyles}>
-        <Text>You Don't Have An Account? </Text>
+        <Text style={{ color: isDark ? GlobalStyles.theme.darkTheme.color : GlobalStyles.theme.lightTheme.color }}>You Don't Have An Account? </Text>
         <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
           <Text style={styles.loginStyle}>Sign Up</Text>
         </TouchableOpacity>

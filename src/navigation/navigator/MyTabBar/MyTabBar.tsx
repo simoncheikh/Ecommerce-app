@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Platform } from 'react-native';
+import { View, Platform, Image } from 'react-native';
 import {
   BottomTabBarProps,
   createBottomTabNavigator,
@@ -18,8 +18,8 @@ export const MyTabBar: React.FC<BottomTabBarProps> = ({
   return (
     <View style={{ flexDirection: 'row' }}>
       {state.routes.map((route, index) => {
-        if (route.name === 'productDetails') {
-          return null; 
+        if (route.name === 'ProductDetails') {
+          return null;
         }
         const { options } = descriptors[route.key];
         const label: any =
@@ -55,8 +55,20 @@ export const MyTabBar: React.FC<BottomTabBarProps> = ({
             testID={options.tabBarButtonTestID}
             onPress={onPress}
             onLongPress={onLongPress}
-            style={{ flex: 1, alignItems: 'center', justifyContent: "center", padding: "5%", backgroundColor: GlobalStyles.color.primary }}
+            style={{ flex: 1, alignItems: 'center', justifyContent: "center", padding: "2%", backgroundColor: GlobalStyles.color.primary }}
           >
+            {options.tabBarIcon && (
+              <Image
+                source={options.tabBarIcon}
+                style={{
+                  width: 24,
+                  height: 24,
+                  tintColor: isFocused ? colors.primary : 'white',
+                  marginBottom: 4,
+                }}
+              />
+            )}
+
             <Text style={{ color: isFocused ? colors.primary : "white" }}>
               {label}
             </Text>

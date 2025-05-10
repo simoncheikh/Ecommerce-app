@@ -8,14 +8,37 @@ const Tab = createBottomTabNavigator();
 
 export const HomeTabs = () => {
     return (
-        <Tab.Navigator tabBar={(props) => <MyTabBar {...props} />}>
-            <Tab.Screen name="Home" component={HomePage} options={{ headerShown: false }} />
-
-            <Tab.Screen name="Products" component={HomePage} options={{ headerShown: false }} />
-            <Tab.Screen name="Profile" component={HomePage} options={{ headerShown: false }} />
-            <Tab.Screen name="Settings" component={HomePage} options={{ headerShown: false }} />
+        <Tab.Navigator tabBar={(props) => <MyTabBar {...props} />}
+            initialRouteName="Home"
+        >
+            <Tab.Screen name="Home" component={HomePage} options={{ headerShown: false, tabBarIcon: require("../../../assets/home.png") }} />
             <Tab.Screen
-                name="productDetails"
+                name="Products"
+                component={HomePage}
+                options={{
+                    headerShown: false,
+                    tabBarIcon: require("../../../assets/cart.png"), // Add icon
+                }}
+            />
+            <Tab.Screen
+                name="Profile"
+                component={HomePage}
+                options={{
+                    headerShown: false,
+                    tabBarIcon: require("../../../assets/profile.png"), // Add icon
+                }}
+            />
+            <Tab.Screen
+                name="Settings"
+                component={HomePage}
+                options={{
+                    headerShown: false,
+                    tabBarIcon: require("../../../assets/settings.png"), // Add icon
+                }}
+            />
+
+            <Tab.Screen
+                name="ProductDetails"
                 component={ProductDetails}
                 options={{
                     headerShown: false,

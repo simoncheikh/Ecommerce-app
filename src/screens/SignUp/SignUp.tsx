@@ -8,10 +8,16 @@ import { Textfield } from "../../components/atoms/Textfield/Textfield";
 import { Button } from "../../components/atoms/Button/Button";
 import { LoginButton } from "../../components/atoms/LoginButton/LoginButton";
 import { useNavigation } from "@react-navigation/native";
+import { useThemeContext } from "../../store/themeContext/ThemeContext";
+import { GlobalStyles } from "../../styles/GobalStyles";
 
 const schema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters long" }),
   email: z.string().email({ message: "Invalid email address" }),
+  phoneNumber: z
+    .string()
+    .min(8, { message: "Phone number must be at least 8 digits" })
+    .regex(/^\d+$/, { message: "Phone number must contain only digits" }),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters long")
@@ -21,8 +27,11 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-export const SignUp = () => {
-  const navigation = useNavigation()
+
+export const SignUp = ({ navigation }: any) => {
+  const { theme } = useThemeContext();
+
+  const isDark = theme === 'dark';
   const {
     control,
     handleSubmit,
@@ -38,10 +47,10 @@ export const SignUp = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? GlobalStyles.theme.darkTheme.backgroundColor : GlobalStyles.theme.lightTheme.backgroundColor }]}>
       <View style={styles.innerContainer}>
         <View style={styles.titleContainer}>
-          <Text style={styles.titleLabel}>Sign Up</Text>
+          <Text style={[styles.titleLabel, { color: isDark ? GlobalStyles.theme.darkTheme.color : GlobalStyles.theme.lightTheme.color }]}>Sign Up</Text>
           <Text style={styles.descLabel}>Create an account so you can order your favorite products easily and quickly</Text>
         </View>
         <View style={styles.fieldsContainer}>
@@ -70,8 +79,16 @@ export const SignUp = () => {
             />
             {errors.password && <Text style={styles.error}>{errors.password.message}</Text>}
           </View>
+          <View>
+            <Textfield
+              control={control}
+              name="phoneNumber"
+              placeholder="Phone Number"
+            />
+            {errors.phoneNumber && <Text style={styles.error}>{errors.phoneNumber.message}</Text>}
+          </View>
         </View>
-        <Button onClick={handleSubmit(onSubmit)} label="SIGN UP" disabled={!isValid} variant="primary"/>
+        <Button onClick={handleSubmit(onSubmit)} label="SIGN UP" disabled={!isValid} variant="primary" />
         <Text style={styles.continueLabel}>Or Continue With</Text>
         <View style={styles.signUpByBtnContainer}>
           <LoginButton label="G" variant="red" onClick={() => console.log("test")} />
@@ -79,8 +96,8 @@ export const SignUp = () => {
         </View>
       </View>
       <View style={styles.haveAnAccStyles}>
-        <Text>Already Have An Account? </Text>
-        <TouchableOpacity onPress={()=>navigation.navigate("SignIn")}>
+        <Text style={{ color: isDark ? GlobalStyles.theme.darkTheme.color : GlobalStyles.theme.lightTheme.color }}>Already Have An Account? </Text>
+        <TouchableOpacity onPress={() => navigation.navigate("SignIn")}>
           <Text style={styles.loginStyle}>Sign In</Text>
         </TouchableOpacity>
       </View>

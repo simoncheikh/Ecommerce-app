@@ -14,6 +14,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "../../components/atoms/Button/Button";
 import { styles } from "./VerificationPage.styles";
 import { useNavigation } from "@react-navigation/native";
+import { useAuth } from "../../store/AuthContext/AuthContext";
+import { GlobalStyles } from "../../styles/GobalStyles";
 
 const codeSchema = z.object({
     code: z.array(z.string().length(1)).length(4),
@@ -21,8 +23,9 @@ const codeSchema = z.object({
 
 type CodeForm = z.infer<typeof codeSchema>;
 
-export const VerificationPage = () => {
-    const navigation = useNavigation()
+export const VerificationPage = ({ navigation }: any) => {
+    const { login } = useAuth();
+
     const {
         control,
         handleSubmit,
@@ -51,14 +54,25 @@ export const VerificationPage = () => {
 
     const onSubmit = (data: CodeForm) => {
         const codeString = data.code.join("");
+
         if (codeString === "1234") {
-            navigation.navigate("Home")
+            const success = login("eurisko@gmail.com", "academy2025");
+
+            if (success) {
+                navigation.navigate("HomeTabs", {
+                    screen: "Home",
+                });
+
+            } else {
+                Alert.alert("Login Failed", "Could not authenticate user.");
+            }
         } else {
             setSubmitError("Try again");
             reset({ code: ["", "", "", ""] });
             inputs.current[0]?.focus();
         }
     };
+
 
     return (
         <SafeAreaView style={styles.container}>

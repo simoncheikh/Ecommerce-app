@@ -4,26 +4,28 @@ import products from '../../../Products.json'
 import { styles } from "./HomePage.styles"
 import { Dimensions } from "react-native"
 import { NavBar } from "../../components/organisms/NavBar/NavBar"
-import { useNavigation } from "@react-navigation/native"
+import { useThemeContext } from "../../store/themeContext/ThemeContext"
+import { GlobalStyles } from "../../styles/GobalStyles"
 
 
 const screenWidth = Dimensions.get("window").width
 
 export const HomePage = ({ navigation }: any) => {
+    const { theme } = useThemeContext();
+
+    const isDark = theme === 'dark';
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: isDark ? GlobalStyles.theme.darkTheme.backgroundColor : GlobalStyles.theme.lightTheme.backgroundColor }]}>
             <NavBar />
             <View style={styles.productContainer}>
                 <View style={styles.filterContainer}>
-                    <Text style={styles.totalLabel}>
+                    <Text style={{ color: isDark ? GlobalStyles.theme.darkTheme.color : GlobalStyles.theme.lightTheme.color }}>
                         {products?.data?.length} items
                     </Text>
 
-                    <View>
-                        <TouchableOpacity>
-                            <Text>Filter</Text>
-                        </TouchableOpacity>
-                    </View>
+                    <TouchableOpacity>
+                        <Text style={{ color: isDark ? GlobalStyles.theme.darkTheme.color : GlobalStyles.theme.lightTheme.color }}>Filter</Text>
+                    </TouchableOpacity>
                 </View>
                 <FlatList
                     data={products.data}
@@ -32,8 +34,9 @@ export const HomePage = ({ navigation }: any) => {
                     renderItem={({ item }) => (
                         <ProductCard
                             title={item.title}
+                            price={item.price}
                             source={{ uri: item?.images[0]?.url }}
-                            cardWidth={screenWidth / 2}
+                            cardWidth={screenWidth / 2 - 10}
                             onPress={() => navigation.navigate("ProductDetails", { productId: item._id })}
                         />
                     )}

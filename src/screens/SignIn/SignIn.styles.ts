@@ -1,6 +1,9 @@
 import { StyleSheet } from "react-native";
 import { GlobalStyles } from "../../styles/GobalStyles";
 
+const customFonts = GlobalStyles.fonts;
+
+
 export const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -15,24 +18,27 @@ export const styles = StyleSheet.create({
     },
     titleContainer: {
         display: "flex",
-        flexDirection: "column"
+        flexDirection: "column",
     },
     titleLabel: {
         fontSize: 30,
-        fontWeight: "900"
+        fontFamily: customFonts.regular.title
     },
     descLabel: {
         fontSize: 15,
-        color: GlobalStyles.color.primary
+        color: GlobalStyles.color.primary,
+        fontFamily: customFonts.regular.normalText
     },
 
     label: {
         fontWeight: "bold",
-        marginBottom: 4
+        marginBottom: 4,
+        fontFamily: customFonts.regular.normalText
     },
     error: {
         color: "red",
-        marginBottom: 8
+        marginBottom: 8,
+        fontFamily: customFonts.regular.normalText
     },
     haveAnAccStyles: {
         flexDirection: "row",
@@ -43,15 +49,16 @@ export const styles = StyleSheet.create({
         color: GlobalStyles.color.primary
     },
     fieldsContainer: {
-        display:"flex",
-        height:"30%",
+        display: "flex",
+        height: "30%",
         flexDirection: "column",
         gap: "2%",
-        justifyContent:"center"
+        justifyContent: "center"
     },
     continueLabel: {
         textAlign: "center",
-        color: "gray"
+        fontFamily: customFonts.regular.normalText,
+        color: "gray",
     },
     signUpByBtnContainer: {
         display: "flex",

@@ -1,0 +1,25 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "src/assets/fonts/Exo-Medium.otf",
+      "sha1": "9e5aed102868575b637428316175d8403de7b833"
+    },
+    {
+      "path": "src/assets/fonts/Merriweather-Italic.ttf",
+      "sha1": "cacec921a3cd7eaaa961ef381f68d5a7968211d2"
+    },
+    {
+      "path": "src/assets/fonts/Merriweather-Regular.ttf",
+      "sha1": "88f0ca30082490dabc2ce54e357876d8ea4fb4ac"
+    },
+    {
+      "path": "src/assets/fonts/PlayfairDisplay-Regular.ttf",
+      "sha1": "4b6001700ca1ea546cf6a25b349afb3131ecb969"
+    },
+    {
+      "path": "src/assets/fonts/Tagesschrift-Regular.ttf",
+      "sha1": "52f24021f8c37039908f86f71d0b6c979c64af95"
+    }
+  ]
+}
