@@ -3,10 +3,10 @@ import { styles } from "./NavBar.styles";
 import { SearchField } from "../../molecules/SearchField/SearchField";
 import { useThemeContext } from "../../../store/themeContext/ThemeContext";
 import { useState } from "react";
-import { useAuth } from "../../../store/AuthContext/AuthContext";
+import { useAuthStore } from "../../../store/sessionStore/AuthStore";
 
 export const NavBar = () => {
-  const { logout } = useAuth()
+  const { logout } = useAuthStore()
   const { theme, toggleTheme } = useThemeContext();
   const isDarkMode = theme === "dark";
   const [value, setValue] = useState(isDarkMode);
@@ -15,10 +15,6 @@ export const NavBar = () => {
     setValue((prev) => !prev);
     toggleTheme();
   };
-
-  const handleLogout = () => {
-    logout()
-  }
 
   return (
     <View style={styles.container}>
@@ -33,7 +29,7 @@ export const NavBar = () => {
         value={value}
         style={styles.switch}
       />
-      <TouchableOpacity onPress={() => handleLogout()}>
+      <TouchableOpacity onPress={logout}>
         <Image source={require('../../../assets/logout.png')} />
       </TouchableOpacity>
     </View>

@@ -13,18 +13,19 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "../../components/atoms/Button/Button";
 import { styles } from "./VerificationPage.styles";
-import { useNavigation } from "@react-navigation/native";
-import { useAuth } from "../../store/AuthContext/AuthContext";
-import { GlobalStyles } from "../../styles/GobalStyles";
+import { useAuthStore } from "../../store/sessionStore/AuthStore";
+import { verificationApi } from "../../api/users/verification/verificationApi";
+import { resendVerificationApi } from "../../api/users/verification/resendverificationApi";
 
 const codeSchema = z.object({
-    code: z.array(z.string().length(1)).length(4),
+    code: z.array(z.string().length(1)).length(6),
 });
 
 type CodeForm = z.infer<typeof codeSchema>;
 
-export const VerificationPage = ({ navigation }: any) => {
-    const { login } = useAuth();
+export const VerificationPage = ({ navigation, route }: any) => {
+    const { login } = useAuthStore();
+    const { email } = route.params;
 
     const {
         control,
@@ -34,7 +35,7 @@ export const VerificationPage = ({ navigation }: any) => {
         formState: { isValid },
     } = useForm<CodeForm>({
         resolver: zodResolver(codeSchema),
-        defaultValues: { code: ["", "", "", ""] },
+        defaultValues: { code: ["", "", "", "", "", ""] },
     });
 
     const inputs = useRef<Array<TextInput | null>>([]);
@@ -47,29 +48,45 @@ export const VerificationPage = ({ navigation }: any) => {
         return () => clearInterval(interval);
     }, [timer]);
 
-    const resendCode = () => {
-        setTimer(30);
-        Alert.alert("Code has been sent again!");
-    };
 
-    const onSubmit = (data: CodeForm) => {
+    const onSubmit = async (data: CodeForm) => {
         const codeString = data.code.join("");
 
-        if (codeString === "1234") {
-            const success = login("eurisko@gmail.com", "academy2025");
+        try {
+            const res = await verificationApi({
+                email: email,
+                otp: codeString,
+            });
 
-            if (success) {
-                navigation.navigate("HomeTabs", {
-                    screen: "Home",
-                });
+            console.log("Verification response:", res);
 
+            if (res?.success) {
+                if (res.token) {
+                    login(res.token);
+                    navigation.navigate("HomeTabs", { screen: "Home" });
+                } else {
+                    Alert.alert("Error", "Verification succeeded, but token is missing.");
+                }
             } else {
-                Alert.alert("Login Failed", "Could not authenticate user.");
+                setSubmitError("Invalid verification code");
+                reset({ code: ["", "", "", "", "", ""] });
+                inputs.current[0]?.focus();
             }
+        } catch (error) {
+            console.error("Verification error:", error);
+            Alert.alert("Error", "Something went wrong. Please try again.");
+        }
+    };
+
+
+    const handleVerificationCode = async () => {
+        setTimer(30);
+        const response = await resendVerificationApi(email);
+
+        if (response.success) {
+            Alert.alert("Success", response.message);
         } else {
-            setSubmitError("Try again");
-            reset({ code: ["", "", "", ""] });
-            inputs.current[0]?.focus();
+            Alert.alert("Error", response.message);
         }
     };
 
@@ -84,7 +101,7 @@ export const VerificationPage = ({ navigation }: any) => {
 
             <View style={styles.codeContainer}>
                 <View style={styles.inputContainer}>
-                    {Array.from({ length: 4 }).map((_, index) => (
+                    {Array.from({ length: 6 }).map((_, index) => (
                         <Controller
                             key={index}
                             control={control}
@@ -102,7 +119,7 @@ export const VerificationPage = ({ navigation }: any) => {
                                             setSubmitError("");
                                             clearErrors("code");
 
-                                            if (text && index < 3) {
+                                            if (text && index < 5) {
                                                 setTimeout(() => {
                                                     inputs.current[index + 1]?.focus();
                                                 }, 50);
@@ -136,9 +153,10 @@ export const VerificationPage = ({ navigation }: any) => {
                 {timer > 0 ? (
                     <Text style={styles.timerText}>Resend code in {timer}s</Text>
                 ) : (
-                    <TouchableOpacity onPress={resendCode}>
+                    <TouchableOpacity onPress={handleVerificationCode}>
                         <Text style={styles.resendText}>
-                            Didn't receive code? <Text style={styles.resendLink}>Send code</Text>
+                            Didn't receive code?{" "}
+                            <Text style={styles.resendLink}>Send code</Text>
                         </Text>
                     </TouchableOpacity>
                 )}

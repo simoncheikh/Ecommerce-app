@@ -35,7 +35,7 @@ export const styles = StyleSheet.create({
     codeContainer: {
         flex: 3,
         flexDirection: "column",
-        width: "80%",
+        width: "90%",
     },
     inputContainer: {
         flexDirection: "row",

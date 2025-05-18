@@ -2,15 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import { useAuth } from '../../store/AuthContext/AuthContext';
 import { LandingPage } from '../../screens/LandingPage/LandingPage';
 import { AuthStack } from './AuthStack/AuthStack';
 import { UnAuthStack } from './UnAuthStack/UnAuthStack';
+import { useAuthStore } from '../../store/sessionStore/AuthStore';
 
 const Stack = createNativeStackNavigator();
 
 export const RootStack = () => {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn } = useAuthStore();
   const [showLanding, setShowLanding] = useState(true);
 
   useEffect(() => {

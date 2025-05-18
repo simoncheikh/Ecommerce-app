@@ -6,9 +6,10 @@ import { Textfield } from "../../components/atoms/Textfield/Textfield";
 import { Button } from "../../components/atoms/Button/Button";
 import { LoginButton } from "../../components/atoms/LoginButton/LoginButton";
 import { styles } from "./SignIn.styles";
-import { useAuth } from "../../store/AuthContext/AuthContext";
+import { useAuthStore } from "../../store/sessionStore/AuthStore";
 import { GlobalStyles } from "../../styles/GobalStyles";
 import { useThemeContext } from "../../store/themeContext/ThemeContext";
+import { LoginApi } from "../../api/users/login/loginApi";
 
 const schema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -31,16 +32,16 @@ export const SignIn = ({ navigation }: any) => {
     mode: "onChange",
   });
 
-  const { login } = useAuth();
 
-  const handleLogin = (data: FormData) => {
-    const success = login(data.email, data.password);
-    if (success) {
-      navigation.navigate("HomeTabs");
+  const handleLogin = async (data: FormData) => {
+    const token = await LoginApi({ email: data.email, password: data.password, tokenExpire: "1y" });
+    if (token) {
+      useAuthStore.getState().login(token);
     } else {
       Alert.alert("Login Failed", "Invalid username or password.");
     }
   };
+
 
   const { theme } = useThemeContext();
 
