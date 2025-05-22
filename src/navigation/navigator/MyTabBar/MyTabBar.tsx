@@ -18,7 +18,7 @@ export const MyTabBar: React.FC<BottomTabBarProps> = ({
   return (
     <View style={{ flexDirection: 'row' }}>
       {state.routes.map((route, index) => {
-        if (route.name === 'ProductDetails') {
+        if (route.name === 'ProductDetails' || route.name == "EditProduct" || route.name == 'EditProfile' || route.name == 'AddProduct') {
           return null;
         }
         const { options } = descriptors[route.key];
@@ -55,7 +55,7 @@ export const MyTabBar: React.FC<BottomTabBarProps> = ({
             testID={options.tabBarButtonTestID}
             onPress={onPress}
             onLongPress={onLongPress}
-            style={{ flex: 1, alignItems: 'center', justifyContent: "center", padding: "2%", backgroundColor: GlobalStyles.color.primary }}
+            style={{ flex: 1, alignItems: 'center', justifyContent: "center", padding: "2%", backgroundColor: "white" }}
           >
             {options.tabBarIcon && (
               <Image
@@ -63,13 +63,13 @@ export const MyTabBar: React.FC<BottomTabBarProps> = ({
                 style={{
                   width: 24,
                   height: 24,
-                  tintColor: isFocused ? colors.primary : 'white',
+                  tintColor: isFocused ? GlobalStyles.color.primary : "gray",
                   marginBottom: 4,
                 }}
               />
             )}
 
-            <Text style={{ color: isFocused ? colors.primary : "white" }}>
+            <Text style={{ color: isFocused ? GlobalStyles.color.primary : "black" }}>
               {label}
             </Text>
           </PlatformPressable>

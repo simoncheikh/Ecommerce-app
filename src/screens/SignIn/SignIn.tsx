@@ -9,7 +9,7 @@ import { styles } from "./SignIn.styles";
 import { useAuthStore } from "../../store/sessionStore/AuthStore";
 import { GlobalStyles } from "../../styles/GobalStyles";
 import { useThemeContext } from "../../store/themeContext/ThemeContext";
-import { LoginApi } from "../../api/users/login/loginApi";
+import { LoginApi } from "../../api/users/login/LoginApi";
 
 const schema = z.object({
   email: z.string().email({ message: "Invalid email address" }),

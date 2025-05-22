@@ -3,7 +3,7 @@ import { TextInput } from "react-native"
 import { styles } from './Textfield.styles'
 import { TextfieldProps } from "./Textfield.type"
 
-export const Textfield = ({ control, name, placeholder }: TextfieldProps) => {
+export const Textfield = ({ control, name, placeholder, type }: TextfieldProps) => {
     return (
         <Controller
             control={control}

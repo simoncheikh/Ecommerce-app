@@ -6,6 +6,7 @@ import {
   View,
   TouchableOpacity,
   Alert,
+  Image
 } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
@@ -122,18 +123,22 @@ export const SignUp = ({ navigation }: any) => {
             <Controller
               control={control}
               name="profileImage"
-              render={({ field: { value } }) => {
-                const fileName = value ? value.split('/').pop() : '';
-                return (
-                  <View>
-                    {fileName ? (
-                      <Text style={{ marginTop: 8 }}>{fileName}</Text>
-                    ) : (
-                      <Text style={{ marginTop: 8, color: 'gray' }}>No image selected</Text>
-                    )}
-                  </View>
-                );
-              }}
+              render={({ field: { value } }) => (
+                <View>
+                  {value ? (
+                    <Image
+                      source={{ uri: value }}
+                      style={styles.image}
+                    />
+                  ) : (
+                    <View style={styles.placeholder}>
+                      <Text style={styles.placeholderText}>
+                        No image selected
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              )}
             />
             {errors.profileImage && <Text style={styles.error}>{errors.profileImage.message}</Text>}
           </View>

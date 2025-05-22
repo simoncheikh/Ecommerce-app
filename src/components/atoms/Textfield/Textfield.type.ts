@@ -4,4 +4,5 @@ export type TextfieldProps = {
     name: string,
     placeholder: string,
     control: Control<any>
+    type?: string
 }

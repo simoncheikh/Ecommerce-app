@@ -21,22 +21,22 @@ export const styles = StyleSheet.create({
   },
   titleLabel: {
     fontSize: 30,
-    fontFamily:customFonts.regular.title
+    fontFamily: customFonts.regular.title
   },
   descLabel: {
     fontSize: 15,
     color: GlobalStyles.color.primary,
-    fontFamily:customFonts.regular.normalText
+    fontFamily: customFonts.regular.normalText
   },
 
   label: {
     fontWeight: "bold",
     marginBottom: 4,
-    fontFamily:customFonts.regular.normalText,
+    fontFamily: customFonts.regular.normalText,
   },
   error: {
     color: "red",
-    fontFamily:customFonts.regular.normalText,
+    fontFamily: customFonts.regular.normalText,
     marginBottom: 8
   },
   haveAnAccStyles: {
@@ -45,7 +45,7 @@ export const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   loginStyle: {
-    fontFamily:customFonts.regular.normalText,
+    fontFamily: customFonts.regular.normalText,
     color: GlobalStyles.color.primary
   },
   fieldsContainer: {
@@ -55,7 +55,7 @@ export const styles = StyleSheet.create({
   },
   continueLabel: {
     textAlign: "center",
-    fontFamily:customFonts.regular.normalText,
+    fontFamily: customFonts.regular.normalText,
     color: "gray"
   },
   signUpByBtnContainer: {
@@ -64,5 +64,29 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     gap: "1%",
     width: "100%"
+  },
+  image: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor:  '#ddd',
+  },
+  placeholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor:  '#ddd',
+  },
+  placeholderText: {
+    color:  '#666',
+    fontSize: 12,
+    textAlign: 'center',
   }
 });

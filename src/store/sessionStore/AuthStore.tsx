@@ -1,10 +1,15 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+type TokenData = {
+  accessToken: string;
+  refreshToken: string;
+};
+
 type AuthState = {
   isLoggedIn: boolean;
-  token: string | null;
-  login: (token: string) => void;
+  token: { success: boolean; data: TokenData } | null;
+  login: (token: { success: boolean; data: TokenData }) => void;
   logout: () => void;
 };
 
@@ -13,11 +18,11 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       isLoggedIn: false,
       token: null,
-      login: (token: string) => set({ isLoggedIn: true, token }),
+      login: (token) => set({ isLoggedIn: true, token }),
       logout: () => set({ isLoggedIn: false, token: null }),
     }),
     {
-      name: 'auth-storage', 
+      name: 'auth-storage',
     }
   )
 );

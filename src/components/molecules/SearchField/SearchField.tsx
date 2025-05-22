@@ -30,7 +30,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
       {value?.length > 0 && (
         <Pressable onPress={onClear} style={styles.clearButton}>
           <Image
-            source={require('../../../assets/close.png')} // Add a close icon if available
+            source={require('../../../assets/close.png')} 
             style={styles.clearIcon}
           />
         </Pressable>

@@ -63,7 +63,7 @@ export const VerificationPage = ({ navigation, route }: any) => {
             if (res?.success) {
                 if (res.token) {
                     login(res.token);
-                    navigation.navigate("HomeTabs", { screen: "Home" });
+                    navigation.navigate("SignIn");
                 } else {
                     Alert.alert("Error", "Verification succeeded, but token is missing.");
                 }

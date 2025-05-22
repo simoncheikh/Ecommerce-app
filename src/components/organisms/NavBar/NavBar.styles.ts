@@ -5,23 +5,26 @@ import { GlobalStyles } from "../../../styles/GobalStyles";
 export const styles = StyleSheet.create({
     container: {
         padding: '4%',
-        paddingBottom: "2%",
         display: "flex",
         width: "100%",
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        backgroundColor: GlobalStyles.color.primary
+        backgroundColor: "white"
     },
-    searchFieldContainer: {
-        width: "70%"
+    row: {
+        flexDirection: "row",
+        alignItems: "center",
     },
-    themeContainer: {
-        width: "15%",
-        alignItems: "flex-end"
+    logo: {
+        height: 40,
+        width: 40,
+        marginRight: 10,
     },
-    switch: {
-        marginHorizontal: 10,
-    }
+    searchFieldWrapper: {
+        flex: 1,
+        height: 40,
+        justifyContent: "center",
+    },
 
 })

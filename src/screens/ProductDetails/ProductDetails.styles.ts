@@ -10,6 +10,15 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
+  scrollContainer: {
+    // padding: 16,
+  },
+  actionContainer:{
+    display:"flex",
+    flexDirection:"row",
+    height:'auto',
+    justifyContent:"space-between"
+  },
   content: {
     padding: scale(20),
     paddingBottom: verticalScale(40),
@@ -19,6 +28,9 @@ export const styles = StyleSheet.create({
     height: verticalScale(300),
     borderRadius: scale(12),
     marginBottom: verticalScale(20),
+  },
+  imageSwiper: {
+    marginBottom: 16,
   },
   title: {
     fontSize: moderateScale(22),
@@ -100,5 +112,18 @@ export const styles = StyleSheet.create({
     fontFamily: customFonts.regular.normalText,
     fontSize: moderateScale(16),
     marginLeft: scale(10),
+  },
+  mapContainer: {
+    height: 200,
+    width: '100%',
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginVertical: 16,
+  },
+  editButton: {
+    fontSize: 16,
+    color: "#007bff",
+    fontWeight: "600",
+    padding: scale(20),
   },
 });
