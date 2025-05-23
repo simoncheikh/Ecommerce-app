@@ -8,6 +8,7 @@ import { useLinkBuilder, useTheme } from '@react-navigation/native';
 import { Text, PlatformPressable } from '@react-navigation/elements';
 import { GlobalStyles } from '../../../styles/GobalStyles';
 import { useCameraStore } from '../../../store/cameraStore/CameraStore';
+import { useThemeStore } from '../../../store/themeStore/ThemeStore';
 
 export const MyTabBar: React.FC<BottomTabBarProps> = ({
   state,
@@ -15,7 +16,11 @@ export const MyTabBar: React.FC<BottomTabBarProps> = ({
   navigation,
 }) => {
   const isCameraOpen = useCameraStore((state) => state.isCameraOpen)
+  const theme = useThemeStore((state) => state.theme);
   const { colors } = useTheme();
+  const isDark = theme === "dark";
+  const darkTheme = GlobalStyles.theme.darkTheme
+  const lightTheme = GlobalStyles.theme.lightTheme
   const { buildHref } = useLinkBuilder();
   return (
     <View style={{ flexDirection: 'row' }}>
@@ -57,7 +62,7 @@ export const MyTabBar: React.FC<BottomTabBarProps> = ({
             testID={options.tabBarButtonTestID}
             onPress={onPress}
             onLongPress={onLongPress}
-            style={{ flex: 1, display: isCameraOpen && "none", alignItems: 'center', justifyContent: "center", padding: "2%", backgroundColor: "white" }}
+            style={{ flex: 1, display: isCameraOpen && "none", alignItems: 'center', justifyContent: "center", padding: "2%", backgroundColor: isDark ? darkTheme.backgroundColor : lightTheme.backgroundColor }}
           >
             {options.tabBarIcon && (
               <Image
@@ -71,7 +76,15 @@ export const MyTabBar: React.FC<BottomTabBarProps> = ({
               />
             )}
 
-            <Text style={{ color: isFocused ? GlobalStyles.color.primary : "black" }}>
+            <Text
+              style={{
+                color: isFocused
+                  ? GlobalStyles.color.primary
+                  : isDark
+                    ? GlobalStyles.theme.darkTheme.color
+                    : GlobalStyles.theme.lightTheme.color,
+              }}
+            >
               {label}
             </Text>
           </PlatformPressable>

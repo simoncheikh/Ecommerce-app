@@ -83,7 +83,7 @@ export const SignIn = ({ navigation }: any) => {
         </View>
         <Button
           onClick={handleSubmit((data) => loginMutation.mutate(data))}
-          label="SIGN IN"
+          label={loginMutation.isPending ? "Trying to logging in" : "SIGN IN"}
           disabled={!isValid || loginMutation.isPending}
           variant="primary"
         />

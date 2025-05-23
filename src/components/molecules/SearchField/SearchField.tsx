@@ -8,6 +8,8 @@ import {
   Image
 } from 'react-native';
 import { SearchFieldProps } from './SearchField.type';
+import { useThemeStore } from '../../../store/themeStore/ThemeStore';
+import { GlobalStyles } from '../../../styles/GobalStyles';
 
 export const SearchField: React.FC<SearchFieldProps> = ({
   value,
@@ -16,13 +18,36 @@ export const SearchField: React.FC<SearchFieldProps> = ({
   placeholder = 'Search...',
   ...props
 }) => {
+  const theme = useThemeStore((state) => state.theme);
+  const isDark = theme === "dark";
+  const darkTheme = GlobalStyles.theme.darkTheme
+  const lightTheme = GlobalStyles.theme.lightTheme
   return (
-    <View style={styles.container}>
-      <Image source={require('../../../assets/search.png')} style={styles.icon} />
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: isDark
+            ? darkTheme.backgroundColor
+            : lightTheme.backgroundColor,
+        },
+      ]}
+    >
+      <Image
+        source={require('../../../assets/search.png')}
+        style={[styles.icon, { tintColor: isDark ? darkTheme.color : lightTheme.color }]}
+      />
       <TextInput
-        style={styles.input}
+        style={[
+          styles.input,
+          {
+            color: isDark
+              ? darkTheme.color
+              : lightTheme.color,
+          },
+        ]}
         placeholder={placeholder}
-        placeholderTextColor="#999"
+        placeholderTextColor={isDark ? darkTheme.color : lightTheme.color}
         value={value}
         onChangeText={onChangeText}
         {...props}
@@ -30,8 +55,8 @@ export const SearchField: React.FC<SearchFieldProps> = ({
       {value?.length > 0 && (
         <Pressable onPress={onClear} style={styles.clearButton}>
           <Image
-            source={require('../../../assets/close.png')} 
-            style={styles.clearIcon}
+            source={require('../../../assets/close.png')}
+            style={[styles.clearIcon, { tintColor: isDark ? '#fff' : '#000' }]}
           />
         </Pressable>
       )}

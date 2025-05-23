@@ -121,6 +121,14 @@ export const ProductDetails = ({ route, navigation }: any) => {
         );
     }
 
+    if (!productError) {
+        <SafeAreaView style={[styles.container, { backgroundColor: isDark ? GlobalStyles.theme.darkTheme.backgroundColor : GlobalStyles.theme.lightTheme.backgroundColor }]}>
+            <Text style={{ color: isDark ? GlobalStyles.theme.darkTheme.color : GlobalStyles.theme.lightTheme.color, textAlign: "center", marginTop: 20 }}>
+                No Product to Show
+            </Text>
+        </SafeAreaView>
+    }
+
     return (
         <SafeAreaView
             style={[

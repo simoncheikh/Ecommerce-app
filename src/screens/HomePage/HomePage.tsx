@@ -235,7 +235,7 @@ export const HomePage = ({ navigation }: any) => {
                 </Modal>
 
                 <FlatList
-                    data={data?.pages.flatMap((page) => page.products) || []} // 👈 Flatten all pages
+                    data={productsToShow} 
                     keyExtractor={(item) => item._id}
                     renderItem={({ item }) => (
                         <ProductCard

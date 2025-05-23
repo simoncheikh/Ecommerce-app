@@ -239,7 +239,7 @@ export const SignUp = ({ navigation }: any) => {
 
         <Button
           onClick={handleSubmit((data) => signUpMutation.mutate(data))}
-          label="SIGN UP"
+          label={signUpMutation.isPending ? "Creating user" : "SIGN UP"}
           disabled={!isValid || signUpMutation.isPending}
           variant="primary"
         />

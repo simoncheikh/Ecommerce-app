@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useThemeStore } from "../../store/themeStore/ThemeStore";
 import { GlobalStyles } from "../../styles/GobalStyles";
 import { saveImageToGallery } from "../../utils/SaveImageToGallery";
+import { useFocusEffect } from "@react-navigation/native";
 
 export const ProfilePage = ({ navigation }: any) => {
     const { token } = useAuthStore();
@@ -24,6 +25,7 @@ export const ProfilePage = ({ navigation }: any) => {
         data: userData,
         isLoading: userLoading,
         error: userError,
+        refetch
     } = useQuery({
         queryKey: ["profile"],
         queryFn: () => {
@@ -36,6 +38,12 @@ export const ProfilePage = ({ navigation }: any) => {
         refetchOnWindowFocus: true,
         refetchOnReconnect: true,
     });
+
+    useFocusEffect(
+        useCallback(() => {
+            refetch();
+        }, [refetch])
+    );
 
 
     const openGmailCompose = async (email: string) => {

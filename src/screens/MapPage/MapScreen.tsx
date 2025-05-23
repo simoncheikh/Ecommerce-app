@@ -1,10 +1,6 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Button, SafeAreaView, PermissionsAndroid, Platform, Alert } from 'react-native';
+import { View, StyleSheet, Button, SafeAreaView } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE, MapPressEvent, Region } from 'react-native-maps';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
-import Geolocation from 'react-native-geolocation-service';
-
 
 type MapScreenProps = {
     route: {
@@ -30,11 +26,11 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
     },
     searchContainer: {
+        position: 'absolute',
+        top: 10,
         width: '100%',
         paddingHorizontal: 10,
-        zIndex: 1,
     },
-
 });
 
 export const MapScreen = ({ route, navigation }: MapScreenProps) => {
@@ -42,8 +38,6 @@ export const MapScreen = ({ route, navigation }: MapScreenProps) => {
         latitude: route.params?.latitude || 33.5401,
         longitude: route.params?.longitude || 33.8342,
     };
-    const [isFocused, setIsFocused] = useState(false)
-    const [address, setAddress] = useState('')
     const [selectedLocation, setSelectedLocation] = useState(initialCoords);
     const mapRef = React.useRef<MapView>(null);
 
@@ -51,70 +45,8 @@ export const MapScreen = ({ route, navigation }: MapScreenProps) => {
         const { latitude, longitude } = event.nativeEvent.coordinate;
         setSelectedLocation({ latitude, longitude });
     };
-    const requestLocationPermission = async () => {
-        if (Platform.OS === 'android') {
-            try {
-                const granted = await PermissionsAndroid.requestMultiple([
-                    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-                    PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
-                ]);
-                if (
-                    granted['android.permission.ACCESS_FINE_LOCATION'] === PermissionsAndroid.RESULTS.GRANTED &&
-                    granted['android.permission.ACCESS_COARSE_LOCATION'] === PermissionsAndroid.RESULTS.GRANTED
-                ) {
-                    return true;
-                } else {
-                    Alert.alert('Permission Denied', 'Location permission is required.');
-                    return false;
-                }
-            } catch (err) {
-                Alert.alert('Permission Error', 'Failed to request permission');
-                return false;
-            }
-        }
-        return true;
-    };
 
-    const handleCurrentLocation = async () => {
-        const hasPermission = await requestLocationPermission();
-        if (!hasPermission) {
-            Alert.alert('Permission denied', 'Location permission is required.');
-            return;
-        }
-        console.log('Permission granted, getting location...');
-
-        Geolocation.getCurrentPosition(
-            (position) => {
-                if (!position || !position.coords) {
-                    Alert.alert("Error", "Could not get your location.");
-                    return;
-                }
-
-                const coords = {
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude,
-                };
-
-                setSelectedLocation(coords);
-                mapRef.current?.animateToRegion({
-                    ...coords,
-                    latitudeDelta: 0.01,
-                    longitudeDelta: 0.01,
-                });
-            },
-            (error) => {
-                console.error('Location error:', error);
-                Alert.alert('Error getting location', error.message);
-            },
-            {
-                enableHighAccuracy: true,
-                timeout: 15000,
-                maximumAge: 10000,
-                forceRequestLocation: true,
-            }
-        );
-    };
-
+    console.log(route.params?.source,route.params?.formData)
 
     const handleDone = () => {
         navigation.navigate({
@@ -133,57 +65,6 @@ export const MapScreen = ({ route, navigation }: MapScreenProps) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.searchContainer}>
-                <GooglePlacesAutocomplete
-                    placeholder="Search"
-                    fetchDetails={true}
-                    onPress={(data, details = null) => {
-                        setAddress(details?.formatted_address || '');
-                        const location = details?.geometry?.location;
-                        if (location) {
-                            const coords = {
-                                latitude: location.lat,
-                                longitude: location.lng,
-                            };
-                            setSelectedLocation(coords);
-                            mapRef.current?.animateToRegion({
-                                ...coords,
-                                latitudeDelta: 0.01,
-                                longitudeDelta: 0.01,
-                            });
-                        }
-                    }}
-                    query={{
-                        key: 'AIzaSyAyO6i-7TkHArTix8XvdH-7uOLTEktUEjQ',
-                        language: 'en',
-                        type: '(cities)'
-                    }}
-                    textInputProps={{
-                        onFocus: () => setIsFocused(true),
-                        onBlur: () => setIsFocused(false),
-                    }}
-                    debounce={200}
-                    styles={{
-                        container: {},
-                        textInputContainer: {
-                            backgroundColor: '#fff',
-                            borderTopWidth: 0,
-                            borderBottomWidth: 0,
-                        },
-                        textInput: {
-                            height: 44,
-                            color: '#000',
-                            fontSize: 16,
-                            backgroundColor: '#f0f0f0',
-                            borderRadius: 5,
-                            paddingHorizontal: 10,
-                        },
-                    }}
-                    predefinedPlaces={[]}
-                />
-            </View>
-
-
             <MapView
                 ref={mapRef}
                 provider={PROVIDER_GOOGLE}
@@ -204,8 +85,6 @@ export const MapScreen = ({ route, navigation }: MapScreenProps) => {
             </MapView>
 
             <View style={styles.buttonContainer}>
-                <Button title="Current Location" onPress={handleCurrentLocation} />
-                <View style={{ height: 10 }} />
                 <Button title="Done" onPress={handleDone} />
             </View>
         </SafeAreaView>

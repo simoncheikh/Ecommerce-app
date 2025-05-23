@@ -12,11 +12,17 @@ import { SettingsPage } from '../../../screens/SettingsPage/SettingsPage';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { useAuthStore } from '../../../store/sessionStore/AuthStore';
 import { useCameraStore } from '../../../store/cameraStore/CameraStore';
+import { useThemeStore } from '../../../store/themeStore/ThemeStore';
 
 const Tab = createBottomTabNavigator();
 
 export const HomeTabs = () => {
     const { logout } = useAuthStore()
+    const theme = useThemeStore((state) => state.theme);
+
+    const isDark = theme === "dark";
+    const darkTheme = GlobalStyles.theme.darkTheme
+    const lightTheme = GlobalStyles.theme.lightTheme
     const isCameraOpen = useCameraStore((state) => state.isCameraOpen)
 
     return (
@@ -38,24 +44,30 @@ export const HomeTabs = () => {
                 options={{
                     headerShown: true,
                     tabBarIcon: require("../../../assets/settings.png"),
-                    headerTitle: () => (
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Settings</Text>
-                        </View>
-                    ),
+                    headerTitle: "Settings",
+                    headerStyle: {
+                        backgroundColor: isDark
+                            ? GlobalStyles.theme.darkTheme.backgroundColor
+                            : GlobalStyles.theme.lightTheme.backgroundColor,
+                    },
+                    headerTitleStyle: {
+                        color: GlobalStyles.color.primary,
+                        fontFamily: GlobalStyles.fonts.regular.title,
+                    },
+                    headerBackTitleStyle: {
+                        fontFamily: GlobalStyles.fonts.regular.title,
+                    },
                     headerRight: () => (
-                        <TouchableOpacity
-                            onPress={logout}
-                            style={{ marginRight: 15 }}
-                        >
+                        <TouchableOpacity onPress={logout} style={{ marginRight: 15 }}>
                             <Image
                                 source={require("../../../assets/logout.png")}
-                                style={{ width: 24, height: 24, tintColor: '#ff3b30' }}
+                                style={{ width: 24, height: 24, tintColor: "#ff3b30" }}
                             />
                         </TouchableOpacity>
-                    )
+                    ),
                 }}
             />
+
 
             <Tab.Screen
                 name="ProductDetails"

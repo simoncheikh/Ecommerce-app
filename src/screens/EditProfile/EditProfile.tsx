@@ -284,9 +284,9 @@ export const EditProfile = ({ navigation }: any) => {
 
             <View style={styles.buttonWrapper}>
                 <Button
-                    label="Save Changes"
+                    label={editProfileMutation.isPending ? 'Profile is updating' : "Save Changes"}
                     variant="primary"
-                    disabled={!isValid}
+                    disabled={!isValid || editProfileMutation.isPending}
                     onClick={handleSubmit(handleEditProfile)}
                 />
             </View>

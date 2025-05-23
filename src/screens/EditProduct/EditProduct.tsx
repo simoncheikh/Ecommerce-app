@@ -101,19 +101,27 @@ export const EditProduct = ({ navigation, route }: any) => {
 
     useEffect(() => {
         if (productData) {
-            reset({
-                title: productData.title || "",
-                description: productData.description || "",
-                price: productData.price?.toString() || "",
-                images: productData.images?.map((img: any) => `${API_BASE_URL}${img.url}`) || [],
-                location: {
-                    name: productData.location?.name || "",
-                    latitude: productData.location?.latitude || 0,
-                    longitude: productData.location?.longitude || 0,
-                },
-            });
+            const currentFormValues = getValues();
+            const hasLocationChanged =
+                selectedLatitude && selectedLongitude &&
+                (currentFormValues.location.latitude !== selectedLatitude ||
+                    currentFormValues.location.longitude !== selectedLongitude);
+
+            if (!hasLocationChanged) {
+                reset({
+                    title: productData.title || "",
+                    description: productData.description || "",
+                    price: productData.price?.toString() || "",
+                    images: productData.images?.map((img: any) => `${API_BASE_URL}${img.url}`) || [],
+                    location: {
+                        name: productData.location?.name || currentFormValues.location.name,
+                        latitude: productData.location?.latitude || currentFormValues.location.latitude,
+                        longitude: productData.location?.longitude || currentFormValues.location.longitude,
+                    },
+                });
+            }
         }
-    }, [productData, reset]);
+    }, [productData, reset, selectedLatitude, selectedLongitude]);
 
 
     useEffect(() => {
@@ -160,14 +168,27 @@ export const EditProduct = ({ navigation, route }: any) => {
     };
 
     const handleNavigation = () => {
-        const currentFormData = getValues();
         navigation.navigate("Map", {
             latitude: getValues("location").latitude || 33.5401,
             longitude: getValues("location").longitude || 33.8342,
-            formData: currentFormData,
+            formData: getValues(), 
             source: "EditProduct"
         });
     };
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('focus', () => {
+            if (route.params?.selectedLatitude && route.params?.selectedLongitude) {
+                setValue("location.latitude", route.params.selectedLatitude);
+                setValue("location.longitude", route.params.selectedLongitude);
+            }
+            if (route.params?.formData) {
+                reset(route.params.formData);
+            }
+        });
+
+        return unsubscribe;
+    }, [navigation, route.params]);
 
     const showPhotoSelection = (index: number | null = null) => {
         setPhotoActionIndex(index);
@@ -426,9 +447,9 @@ export const EditProduct = ({ navigation, route }: any) => {
 
                 <View style={styles.buttonWrapper}>
                     <Button
-                        label="Save Changes"
+                        label={editProductMutation.isPending ? 'Product is updating' : "Save Changes"}
                         variant="primary"
-                        disabled={!isValid}
+                        disabled={!isValid || editProductMutation.isPending}
                         onClick={handleSubmit(handleEditProduct)}
                     />
                 </View>

@@ -306,7 +306,7 @@ export const AddProduct = ({ navigation, route }: any) => {
 
                 <View style={styles.buttonWrapper}>
                     <Button
-                        label="Submit"
+                        label={mutation.isPending ? "Creating Product..." : "Submit"}
                         variant="primary"
                         disabled={!isValid}
                         onClick={handleSubmit(handleAddProduct)}
