@@ -49,9 +49,8 @@ export const CameraVision = ({
         try {
             const photo = await camera.current.takePhoto({
                 flash: 'off',
-                skipMetadata: false, // Keep EXIF data
+                skipMetadata: false,
                 enableAutoStabilization: true,
-                // For front camera mirroring
                 mirrorFrontCamera: device?.position === 'front',
             });
 
@@ -60,10 +59,8 @@ export const CameraVision = ({
                 return;
             }
 
-            // Proper URI format for both platforms
             const photoUri = Platform.OS === "android" ? `file://${photo.path}` : photo.path;
 
-            // Pass the raw URI - let the display component handle orientation
             onPhotoTaken(photoUri);
             onClose();
         } catch (error) {

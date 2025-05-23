@@ -14,6 +14,9 @@ import { z } from "zod";
 import { GlobalStyles } from "../../styles/GobalStyles";
 import { GoogleMaps } from "../../components/organisms/Maps/googleMaps";
 import { AddProductApi } from "../../api/products/addProduct/AddProductApi";
+import { useMutation } from "@tanstack/react-query";
+import { useCameraStore } from "../../store/cameraStore/CameraStore";
+import { useThemeStore } from "../../store/themeStore/ThemeStore";
 
 
 
@@ -21,7 +24,7 @@ const schema = z.object({
     title: z.string().min(2, { message: "Title must be at least 2 characters long" }),
     description: z.string().min(2, { message: "Description must be at least 2 characters long" }),
     price: z
-        .number().min(2, { message: "Price must be a number greater than 0" }),
+        .string().min(2, { message: "Price must be a number greater than 0" }),
 
     images: z
         .array(z.string().nonempty("Invalid image"))
@@ -40,15 +43,21 @@ type FormData = z.infer<typeof schema>;
 
 export const AddProduct = ({ navigation, route }: any) => {
     const { token } = useAuthStore();
-    const [cameraOpen, setCameraOpen] = useState(false);
+    const theme = useThemeStore((state) => state.theme)
+    const isCameraOpen = useCameraStore((state) => state.isCameraOpen)
+    const setIsCameraOpen = useCameraStore((state) => state.setCameraOpen);
     const [imageIndex, setImageIndex] = useState<number | null>(null);
     const [showPhotoOptions, setShowPhotoOptions] = useState(false);
     const [photoActionIndex, setPhotoActionIndex] = useState<number | null>(null);
 
+    const isDarkMode = theme == 'dark'
+
+    const darkTheme = GlobalStyles.theme.darkTheme
+    const lightTheme = GlobalStyles.theme.lightTheme
+
 
     const selectedLatitude = route.params?.selectedLatitude;
     const selectedLongitude = route.params?.selectedLongitude;
-
 
     const {
         control,
@@ -86,17 +95,17 @@ export const AddProduct = ({ navigation, route }: any) => {
 
     useEffect(() => {
         const backAction = () => {
-            if (cameraOpen) {
-                setCameraOpen(false);
+            if (isCameraOpen) {
+                setIsCameraOpen(false);
                 return true;
             }
             return false;
         };
 
         const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
-
         return () => backHandler.remove();
-    }, [cameraOpen]);
+    }, [isCameraOpen]);
+
 
 
     const handlePhotoTaken = (uri: string) => {
@@ -107,7 +116,7 @@ export const AddProduct = ({ navigation, route }: any) => {
                 : [...currentImages, uri];
 
         setValue("images", newImages, { shouldValidate: true });
-        setCameraOpen(false);
+        setIsCameraOpen(false);
     };
 
 
@@ -133,7 +142,7 @@ export const AddProduct = ({ navigation, route }: any) => {
 
     const handleTakePhoto = (index: number | null = null) => {
         setImageIndex(index);
-        setCameraOpen(true);
+        setIsCameraOpen(true);
         setShowPhotoOptions(false);
     };
 
@@ -173,74 +182,71 @@ export const AddProduct = ({ navigation, route }: any) => {
         setValue("images", newImages, { shouldValidate: true });
     };
 
-    const handleAddProduct = async (data: FormData) => {
-        try {
-            if (!token?.data?.accessToken) {
-                Alert.alert("Error", "You need to be logged in to add products");
-                return;
-            }
+    const mutation = useMutation({
+        mutationFn: AddProductApi,
+        onSuccess: () => {
+            Alert.alert("Success", "Product added successfully");
+            reset();
+            navigation.goBack();
+        },
+        onError: (error: any) => {
+            Alert.alert("Error", error.message || "Failed to add product");
+        },
+    });
 
-            if (!data.location.latitude || !data.location.longitude) {
-                Alert.alert("Error", "Please select a valid location");
-                return;
-            }
-
-            const response = await AddProductApi({
-                title: data.title,
-                description: data.description,
-                price: Number(data.price),
-                location: {
-                    name: data.location.name || "",
-                    longitude: data.location.longitude,
-                    latitude: data.location.latitude
-                },
-                images: data.images.map(uri => ({
-                    url: uri,
-                    _id: ""
-                })),
-                accessToken: token.data.accessToken
-            });
-
-            if (response) {
-                Alert.alert("Success", "Product added successfully");
-                reset()
-                navigation.goBack();
-            }
-        } catch (error: any) {
-            console.error("Error adding product:", error);
-            Alert.alert("Error", error.message || "An error occurred while adding the product");
+    const handleAddProduct = (data: FormData) => {
+        if (!token?.data?.accessToken) {
+            Alert.alert("Error", "You need to be logged in to add products");
+            return;
         }
-        console.log(data)
+
+        if (!data.location.latitude || !data.location.longitude) {
+            Alert.alert("Error", "Please select a valid location");
+            return;
+        }
+
+        mutation.mutate({
+            title: data.title,
+            description: data.description,
+            price: Number(data.price),
+            location: {
+                name: data.location.name || "",
+                longitude: data.location.longitude,
+                latitude: data.location.latitude,
+            },
+            images: data.images.map(uri => ({ url: uri, _id: "" })),
+            accessToken: token.data.accessToken,
+        });
     };
 
 
+
     return (
-        <SafeAreaView style={styles.container}>
-            <ScrollView>
-                <View style={styles.formCard}>
+        <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor }]}>
+            <ScrollView style={{ backgroundColor: isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor }}>
+                <View style={[styles.formCard, { backgroundColor: isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor }]}>
+
                     <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Title</Text>
+                        <Text style={[styles.label, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>Title</Text>
                         <Textfield control={control} name="title" placeholder="Enter Title" />
-                        {errors.title && <Text style={styles.error}>{errors.title.message}</Text>}
+                        {errors.title && <Text style={[styles.error, { color: 'red' }]}>{errors.title.message}</Text>}
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Description</Text>
+                        <Text style={[styles.label, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>Description</Text>
                         <Textfield control={control} name="description" placeholder="Enter Description" />
-                        {errors.description && <Text style={styles.error}>{errors.description.message}</Text>}
+                        {errors.description && <Text style={[styles.error, { color: 'red' }]}>{errors.description.message}</Text>}
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Price</Text>
-                        <Textfield control={control} name="price" placeholder="Enter Price" />
-                        {errors.price && <Text style={styles.error}>{errors.price.message}</Text>}
+                        <Text style={[styles.label, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>Price</Text>
+                        <Textfield control={control} name="price" placeholder="Enter Price" type="numeric" />
+                        {errors.price && <Text style={[styles.error, { color: 'red' }]}>{errors.price.message}</Text>}
                     </View>
-                    <Text style={styles.label}>Add Location</Text>
-                    <Textfield
-                        control={control}
-                        name="location.name"
-                        placeholder="Location Name"
-                    />
+
+                    <Text style={[styles.label, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>Add Location</Text>
+                    <Textfield control={control} name="location.name" placeholder="Location Name" />
+
                     <Pressable onPress={handleNavigation} style={styles.mapContainer}>
                         <GoogleMaps
                             longitude={getValues('location.longitude')}
@@ -249,95 +255,50 @@ export const AddProduct = ({ navigation, route }: any) => {
                     </Pressable>
 
                     <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Product Images</Text>
-                        <View style={{ flexDirection: "row", gap: 10 }}>
+                        <Text style={[styles.label, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>Product Images</Text>
+                        <View style={styles.ImagesContainer}>
                             {control._formValues.images.map((uri, index) => (
                                 <View key={index} style={{ position: "relative" }}>
-                                    <Image
-                                        source={{ uri }}
-                                        style={{ width: 100, height: 100, borderRadius: 8 }}
-                                    />
-                                    <TouchableOpacity
-                                        style={{ position: "absolute", top: -8, right: -8 }}
-                                        onPress={() => handleRemovePhoto(index)}
-                                    >
-                                        <Text style={{
-                                            backgroundColor: "red",
-                                            color: "white",
-                                            padding: 4,
-                                            borderRadius: 12
-                                        }}>
-                                            ✕
-                                        </Text>
+                                    <Image source={{ uri }} style={styles.profileImage} />
+                                    <TouchableOpacity style={styles.removeImage} onPress={() => handleRemovePhoto(index)}>
+                                        <Text style={[styles.removeText, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>✕</Text>
                                     </TouchableOpacity>
-                                    <TouchableOpacity
-                                        onPress={() => showPhotoSelection(index)}
-                                        style={{
-                                            backgroundColor: 'rgba(0,0,0,0.5)',
-                                            padding: 4,
-                                            borderRadius: 4,
-                                            marginTop: 4
-                                        }}
-                                    >
-                                        <Text style={{
-                                            fontSize: 12,
-                                            color: "white",
-                                            textAlign: "center"
-                                        }}>
-                                            Change
-                                        </Text>
+                                    <TouchableOpacity onPress={() => showPhotoSelection(index)} style={styles.changeProfileImage}>
+                                        <Text style={[styles.changeText, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>Change</Text>
                                     </TouchableOpacity>
                                 </View>
                             ))}
 
                             {control._formValues.images.length < 2 && (
-                                <TouchableOpacity
-                                    onPress={() => showPhotoSelection(null)}
-                                    style={{
-                                        width: 100,
-                                        height: 100,
-                                        backgroundColor: "#eee",
-                                        borderRadius: 8,
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                    }}
-                                >
-                                    <Text style={{ fontSize: 24 }}>＋</Text>
+                                <TouchableOpacity onPress={() => showPhotoSelection(null)} style={styles.addProfileImage}>
+                                    <Text style={{ fontSize: 24, color: isDarkMode ? darkTheme.color : lightTheme.color }}>＋</Text>
                                 </TouchableOpacity>
                             )}
                         </View>
-                        {errors.images && <Text style={styles.error}>{errors.images.message}</Text>}
+                        {errors.images && <Text style={[styles.error, { color: 'red' }]}>{errors.images.message}</Text>}
                     </View>
                 </View>
+
                 <Modal
                     visible={showPhotoOptions}
                     transparent={true}
                     animationType="slide"
                     onRequestClose={() => setShowPhotoOptions(false)}
                 >
-                    <View style={styles.modalOverlay}>
-                        <View style={styles.modalContainer}>
-                            <Text style={styles.modalTitle}>Add Photo</Text>
+                    <View style={[styles.modalOverlay, { backgroundColor: (isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor) + 'aa' }]}>
+                        <View style={[styles.modalContainer, { backgroundColor: isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor }]}>
+                            <Text style={[styles.modalTitle, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>Add Photo</Text>
 
-                            <TouchableOpacity
-                                style={styles.modalOption}
-                                onPress={() => handleTakePhoto(photoActionIndex)}
-                            >
-                                <Text style={styles.modalOptionText}>Take Photo</Text>
+                            <TouchableOpacity style={styles.modalOption} onPress={() => handleTakePhoto(photoActionIndex)}>
+                                <Text style={[styles.modalOptionText, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>Take Photo</Text>
                             </TouchableOpacity>
 
-                            <TouchableOpacity
-                                style={styles.modalOption}
-                                onPress={() => handleChooseFromLibrary(photoActionIndex)}
-                            >
-                                <Text style={styles.modalOptionText}>Choose from Library</Text>
+                            <TouchableOpacity style={styles.modalOption} onPress={() => handleChooseFromLibrary(photoActionIndex)}>
+                                <Text style={[styles.modalOptionText, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>Choose from Library</Text>
                             </TouchableOpacity>
 
-                            <TouchableOpacity
-                                style={styles.modalCancel}
-                                onPress={() => setShowPhotoOptions(false)}
-                            >
-                                <Text style={styles.modalCancelText}>Cancel</Text>
+                            <TouchableOpacity style={styles.modalCancel} onPress={() => setShowPhotoOptions(false)}>
+                                <Text style={[styles.modalCancelText, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>Cancel</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -352,11 +313,13 @@ export const AddProduct = ({ navigation, route }: any) => {
                     />
                 </View>
             </ScrollView>
+
             <CameraVision
-                visible={cameraOpen}
-                onClose={() => setCameraOpen(false)}
+                visible={isCameraOpen}
+                onClose={() => setIsCameraOpen(false)}
                 onPhotoTaken={handlePhotoTaken}
             />
         </SafeAreaView>
+
     )
 }

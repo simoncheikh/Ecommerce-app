@@ -8,16 +8,15 @@ import { LoginButton } from "../../components/atoms/LoginButton/LoginButton";
 import { styles } from "./SignIn.styles";
 import { useAuthStore } from "../../store/sessionStore/AuthStore";
 import { GlobalStyles } from "../../styles/GobalStyles";
-import { useThemeContext } from "../../store/themeContext/ThemeContext";
-import { LoginApi } from "../../api/users/login/LoginApi";
+import { useThemeStore } from "../../store/themeStore/ThemeStore";
+import { LoginApi } from '../../api/users/login/LoginApi';
+import { useMutation } from "@tanstack/react-query";
 
 const schema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters long")
-  // .regex(/[A-Z]/, "Must contain an uppercase letter")
-  // .regex(/[^A-Za-z0-9]/, "Must contain a special character"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -33,17 +32,24 @@ export const SignIn = ({ navigation }: any) => {
   });
 
 
-  const handleLogin = async (data: FormData) => {
-    const token = await LoginApi({ email: data.email, password: data.password, tokenExpire: "1y" });
-    if (token) {
-      useAuthStore.getState().login(token);
-    } else {
-      Alert.alert("Login Failed", "Invalid username or password.");
-    }
-  };
+  const loginMutation = useMutation({
+    mutationFn: (data: FormData) =>
+      LoginApi({ email: data.email, password: data.password, tokenExpire: "1y" }),
+    onSuccess: (token) => {
+      if (token) {
+        useAuthStore.getState().login(token);
+      } else {
+        Alert.alert("Login Failed", "Invalid username or password.");
+      }
+    },
+    onError: () => {
+      Alert.alert("Login Failed", "Something went wrong.");
+    },
+  });
 
 
-  const { theme } = useThemeContext();
+
+  const theme = useThemeStore((state) => state.theme);
 
   const isDark = theme === 'dark';
   return (
@@ -76,16 +82,11 @@ export const SignIn = ({ navigation }: any) => {
           </View>
         </View>
         <Button
-          onClick={handleSubmit(handleLogin)}
+          onClick={handleSubmit((data) => loginMutation.mutate(data))}
           label="SIGN IN"
-          disabled={!isValid}
+          disabled={!isValid || loginMutation.isPending}
           variant="primary"
         />
-        <Text style={styles.continueLabel}>Or Continue With</Text>
-        <View style={styles.signUpByBtnContainer}>
-          <LoginButton label="G" variant="red" onClick={() => console.log("test")} />
-          <LoginButton label="F" onClick={() => console.log("test")} />
-        </View>
       </View>
       <View style={styles.haveAnAccStyles}>
         <Text style={{ color: isDark ? GlobalStyles.theme.darkTheme.color : GlobalStyles.theme.lightTheme.color }}>You Don't Have An Account? </Text>

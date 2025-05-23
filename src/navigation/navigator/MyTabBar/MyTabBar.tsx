@@ -7,12 +7,14 @@ import {
 import { useLinkBuilder, useTheme } from '@react-navigation/native';
 import { Text, PlatformPressable } from '@react-navigation/elements';
 import { GlobalStyles } from '../../../styles/GobalStyles';
+import { useCameraStore } from '../../../store/cameraStore/CameraStore';
 
 export const MyTabBar: React.FC<BottomTabBarProps> = ({
   state,
   descriptors,
   navigation,
 }) => {
+  const isCameraOpen = useCameraStore((state) => state.isCameraOpen)
   const { colors } = useTheme();
   const { buildHref } = useLinkBuilder();
   return (
@@ -55,7 +57,7 @@ export const MyTabBar: React.FC<BottomTabBarProps> = ({
             testID={options.tabBarButtonTestID}
             onPress={onPress}
             onLongPress={onLongPress}
-            style={{ flex: 1, alignItems: 'center', justifyContent: "center", padding: "2%", backgroundColor: "white" }}
+            style={{ flex: 1, display: isCameraOpen && "none", alignItems: 'center', justifyContent: "center", padding: "2%", backgroundColor: "white" }}
           >
             {options.tabBarIcon && (
               <Image

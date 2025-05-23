@@ -3,9 +3,18 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from './LandingPage.styles';
 import { View, Image, Animated, Easing } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { useThemeStore } from "../../store/themeStore/ThemeStore";
+import { GlobalStyles } from "../../styles/GobalStyles";
 
 export const LandingPage = ({ navigation }: any) => {
+  const theme = useThemeStore((state) => state.theme)
+
   const spinValue = new Animated.Value(0);
+
+  const isDarkMode = theme == 'dark'
+
+  const darkTheme = GlobalStyles.theme.darkTheme
+  const lightTheme = GlobalStyles.theme.lightTheme
 
   const spin = spinValue.interpolate({
     inputRange: [0, 1],
@@ -35,7 +44,7 @@ export const LandingPage = ({ navigation }: any) => {
   }, [navigation, spinValue]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor }]}>
       <View style={styles.centerContainer}>
         <Animated.Image
           source={require('../../assets/store.png')}

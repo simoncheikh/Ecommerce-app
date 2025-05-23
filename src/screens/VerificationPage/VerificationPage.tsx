@@ -16,6 +16,9 @@ import { styles } from "./VerificationPage.styles";
 import { useAuthStore } from "../../store/sessionStore/AuthStore";
 import { verificationApi } from "../../api/users/verification/verificationApi";
 import { resendVerificationApi } from "../../api/users/verification/resendverificationApi";
+import { useMutation } from "@tanstack/react-query";
+import { useThemeStore } from "../../store/themeStore/ThemeStore";
+import { GlobalStyles } from "../../styles/GobalStyles";
 
 const codeSchema = z.object({
     code: z.array(z.string().length(1)).length(6),
@@ -25,6 +28,13 @@ type CodeForm = z.infer<typeof codeSchema>;
 
 export const VerificationPage = ({ navigation, route }: any) => {
     const { login } = useAuthStore();
+    const theme = useThemeStore((state) => state.theme)
+    const isDarkMode = theme == 'dark'
+
+    const darkTheme = GlobalStyles.theme.darkTheme
+    const lightTheme = GlobalStyles.theme.lightTheme
+
+
     const { email } = route.params;
 
     const {
@@ -49,54 +59,77 @@ export const VerificationPage = ({ navigation, route }: any) => {
     }, [timer]);
 
 
-    const onSubmit = async (data: CodeForm) => {
-        const codeString = data.code.join("");
-
-        try {
-            const res = await verificationApi({
-                email: email,
-                otp: codeString,
-            });
-
-            console.log("Verification response:", res);
-
+    const verificationMutation = useMutation({
+        mutationFn: (codeString: string) =>
+            verificationApi({ email, otp: codeString }),
+        onSuccess: (res) => {
             if (res?.success) {
-                if (res.token) {
-                    login(res.token);
-                    navigation.navigate("SignIn");
-                } else {
-                    Alert.alert("Error", "Verification succeeded, but token is missing.");
-                }
+                navigation.navigate("SignIn");
             } else {
                 setSubmitError("Invalid verification code");
                 reset({ code: ["", "", "", "", "", ""] });
                 inputs.current[0]?.focus();
             }
-        } catch (error) {
+        },
+        onError: (error) => {
             console.error("Verification error:", error);
             Alert.alert("Error", "Something went wrong. Please try again.");
-        }
+        },
+    });
+
+
+    const resendMutation = useMutation({
+        mutationFn: () => resendVerificationApi(email),
+        onSuccess: (res) => {
+            setTimer(30);
+            if (res.success) {
+                Alert.alert("Success", res.message);
+            } else {
+                Alert.alert("Error", res.message);
+            }
+        },
+        onError: (error) => {
+            console.error("Resend error:", error);
+            Alert.alert("Error", "Something went wrong while resending.");
+        },
+    });
+
+    const onSubmit = (data: CodeForm) => {
+        const codeString = data.code.join("");
+        verificationMutation.mutate(codeString);
     };
 
-
-    const handleVerificationCode = async () => {
-        setTimer(30);
-        const response = await resendVerificationApi(email);
-
-        if (response.success) {
-            Alert.alert("Success", response.message);
-        } else {
-            Alert.alert("Error", response.message);
-        }
+    const handleVerificationCode = () => {
+        resendMutation.mutate();
     };
 
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView
+            style={[
+                styles.container,
+                { backgroundColor: isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor },
+            ]}
+        >
             <Image source={require("../../assets/store.png")} />
+
             <View style={styles.titleContainer}>
-                <Text style={styles.title}>Verification Code</Text>
-                <Text style={styles.subtitle}>Enter the code sent to your email</Text>
+                <Text
+                    style={[
+                        styles.title,
+                        { color: isDarkMode ? darkTheme.color : lightTheme.color },
+                    ]}
+                >
+                    Verification Code
+                </Text>
+                <Text
+                    style={[
+                        styles.subtitle,
+                        { color: isDarkMode ? darkTheme.color : lightTheme.color },
+                    ]}
+                >
+                    Enter the code sent to your email
+                </Text>
             </View>
 
             <View style={styles.codeContainer}>
@@ -109,7 +142,13 @@ export const VerificationPage = ({ navigation, route }: any) => {
                             render={({ field: { onChange, value } }) => (
                                 <TextInput
                                     ref={(ref) => (inputs.current[index] = ref)}
-                                    style={styles.input}
+                                    style={[
+                                        styles.input,
+                                        {
+                                            color: isDarkMode ? darkTheme.color : lightTheme.color,
+                                            borderColor: isDarkMode ? darkTheme.color : lightTheme.color,
+                                        },
+                                    ]}
                                     keyboardType="number-pad"
                                     maxLength={1}
                                     value={value}
@@ -137,30 +176,60 @@ export const VerificationPage = ({ navigation, route }: any) => {
                     ))}
                 </View>
 
-                <Text style={styles.errorText}>{submitError && "Code is wrong."}</Text>
+                <Text
+                    style={[
+                        styles.errorText,
+                        { color: submitError ? "red" : "transparent" },
+                    ]}
+                >
+                    {submitError && "Code is wrong."}
+                </Text>
 
                 <View style={styles.button}>
                     <Button
-                        label={submitError || "Submit"}
+                        label={verificationMutation.isPending ? "Verifying..." : submitError || "Submit"}
                         onClick={handleSubmit(onSubmit)}
                         variant="primary"
-                        disabled={!isValid}
+                        disabled={!isValid || verificationMutation.isPending}
                     />
                 </View>
             </View>
 
             <View style={styles.resendContainer}>
                 {timer > 0 ? (
-                    <Text style={styles.timerText}>Resend code in {timer}s</Text>
+                    <Text
+                        style={[
+                            styles.timerText,
+                            { color: isDarkMode ? darkTheme.color : lightTheme.color },
+                        ]}
+                    >
+                        Resend code in {timer}s
+                    </Text>
                 ) : (
-                    <TouchableOpacity onPress={handleVerificationCode}>
-                        <Text style={styles.resendText}>
+                    <View style={styles.resendSmallContainer}>
+                        <Text
+                            style={[
+                                styles.resendText,
+                                { color: isDarkMode ? darkTheme.color : lightTheme.color },
+                            ]}
+                        >
                             Didn't receive code?{" "}
-                            <Text style={styles.resendLink}>Send code</Text>
                         </Text>
-                    </TouchableOpacity>
+
+                        <TouchableOpacity onPress={handleVerificationCode}>
+                            <Text
+                                style={[
+                                    styles.resendLink,
+                                    { color: isDarkMode ? "#66b2ff" : "#0066cc" },
+                                ]}
+                            >
+                                Send code
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 )}
             </View>
         </SafeAreaView>
+
     );
 };

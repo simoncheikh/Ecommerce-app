@@ -1,7 +1,7 @@
 import axios from "axios";
 import { API_BASE_URL } from "../../../constants/apiConfig";
 
-export const getAllProductsApi = async (
+export const GetAllProductsApi = async (
   accessToken: string,
   page = 1,
   limit = 10,

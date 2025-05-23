@@ -29,6 +29,9 @@ import { AddProductApi } from "../../api/products/addProduct/AddProductApi";
 import { GetProductApi } from "../../api/products/getProductById/GetProductApi";
 import { API_BASE_URL } from "../../constants/apiConfig";
 import { EditProductApi } from "../../api/products/editProduct/EditProductApi";
+import { useCameraStore } from "../../store/cameraStore/CameraStore";
+import { GlobalStyles } from "../../styles/GobalStyles";
+import { useThemeStore } from "../../store/themeStore/ThemeStore";
 
 const schema = z.object({
     title: z.string().min(2, { message: "Title must be at least 2 characters long" }),
@@ -48,11 +51,20 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export const EditProduct = ({ navigation, route }: any) => {
+    const isCameraOpen = useCameraStore((state) => state.isCameraOpen)
+    const theme = useThemeStore((state) => state.theme)
+    const setIsCameraOpen = useCameraStore((state) => state.setCameraOpen);
     const { token } = useAuthStore();
-    const [cameraOpen, setCameraOpen] = useState(false);
+    // const [cameraOpen, setCameraOpen] = useState(false);
     const [imageIndex, setImageIndex] = useState<number | null>(null);
     const [showPhotoOptions, setShowPhotoOptions] = useState(false);
     const [photoActionIndex, setPhotoActionIndex] = useState<number | null>(null);
+
+    const isDarkMode = theme == 'dark'
+
+
+    const darkTheme = GlobalStyles.theme.darkTheme
+    const lightTheme = GlobalStyles.theme.lightTheme
 
     const {
         control,
@@ -103,8 +115,6 @@ export const EditProduct = ({ navigation, route }: any) => {
         }
     }, [productData, reset]);
 
-    console.log(productData+"a")
-
 
     useEffect(() => {
         if (selectedLatitude && selectedLongitude) {
@@ -122,15 +132,15 @@ export const EditProduct = ({ navigation, route }: any) => {
 
     useEffect(() => {
         const backAction = () => {
-            if (cameraOpen) {
-                setCameraOpen(false);
+            if (isCameraOpen) {
+                setIsCameraOpen(false);
                 return true;
             }
             return false;
         };
         const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
         return () => backHandler.remove();
-    }, [cameraOpen]);
+    }, [isCameraOpen]);
 
     const handlePhotoTaken = (uri: string) => {
         const currentImages = getValues("images");
@@ -140,7 +150,7 @@ export const EditProduct = ({ navigation, route }: any) => {
                 : [...currentImages, uri];
 
         setValue("images", newImages, { shouldValidate: true });
-        setCameraOpen(false);
+        setIsCameraOpen(false);
     };
 
     const handleRemovePhoto = (index: number) => {
@@ -150,12 +160,12 @@ export const EditProduct = ({ navigation, route }: any) => {
     };
 
     const handleNavigation = () => {
-        const currentFormData = getValues(); 
+        const currentFormData = getValues();
         navigation.navigate("Map", {
             latitude: getValues("location").latitude || 33.5401,
             longitude: getValues("location").longitude || 33.8342,
-            formData: currentFormData, 
-            source:"EditProduct"
+            formData: currentFormData,
+            source: "EditProduct"
         });
     };
 
@@ -166,7 +176,7 @@ export const EditProduct = ({ navigation, route }: any) => {
 
     const handleTakePhoto = (index: number | null = null) => {
         setImageIndex(index);
-        setCameraOpen(true);
+        setIsCameraOpen(true);
         setShowPhotoOptions(false);
     };
 
@@ -259,80 +269,118 @@ export const EditProduct = ({ navigation, route }: any) => {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
-            <ScrollView>
-                <View style={styles.formCard}>
+        <SafeAreaView
+            style={[
+                styles.container,
+                { backgroundColor: isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor },
+            ]}
+        >
+            <ScrollView
+                style={{ backgroundColor: isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor }}
+            >
+                <View
+                    style={[
+                        styles.formCard,
+                        { backgroundColor: isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor },
+                    ]}
+                >
                     <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Title</Text>
+                        <Text style={[styles.label, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>
+                            Title
+                        </Text>
                         <Textfield control={control} name="title" placeholder="Enter Title" />
-                        {errors.title && <Text style={styles.error}>{errors.title.message}</Text>}
+                        {errors.title && (
+                            <Text style={[styles.error, { color: 'red' }]}>{errors.title.message}</Text>
+                        )}
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Description</Text>
+                        <Text style={[styles.label, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>
+                            Description
+                        </Text>
                         <Textfield control={control} name="description" placeholder="Enter Description" />
-                        {errors.description && <Text style={styles.error}>{errors.description.message}</Text>}
+                        {errors.description && (
+                            <Text style={[styles.error, { color: 'red' }]}>{errors.description.message}</Text>
+                        )}
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Price</Text>
+                        <Text style={[styles.label, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>
+                            Price
+                        </Text>
                         <Textfield control={control} name="price" placeholder="Enter Price" />
-                        {errors.price && <Text style={styles.error}>{errors.price.message}</Text>}
+                        {errors.price && (
+                            <Text style={[styles.error, { color: 'red' }]}>{errors.price.message}</Text>
+                        )}
                     </View>
 
-                    <Text style={styles.label}>Add Location</Text>
+                    <Text style={[styles.label, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>
+                        Add Location
+                    </Text>
                     <Textfield control={control} name="location.name" placeholder="Location Name" />
+
                     <Pressable onPress={handleNavigation} style={styles.mapContainer}>
                         <GoogleMaps
-                            longitude={getValues("location").longitude}
-                            latitude={getValues("location").latitude}
+                            longitude={getValues('location').longitude}
+                            latitude={getValues('location').latitude}
                         />
                     </Pressable>
 
                     <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Product Images</Text>
-                        <View style={{ flexDirection: "row", gap: 10 }}>
-                            {getValues("images").map((uri, index) => (
-                                <View key={index} style={{ position: "relative" }}>
+                        <Text style={[styles.label, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>
+                            Product Images
+                        </Text>
+                        <View style={{ flexDirection: 'row', gap: 10 }}>
+                            {getValues('images').map((uri, index) => (
+                                <View key={index} style={{ position: 'relative' }}>
                                     <Image source={{ uri }} style={{ width: 100, height: 100, borderRadius: 8 }} />
                                     <TouchableOpacity
-                                        style={{ position: "absolute", top: -8, right: -8 }}
+                                        style={{ position: 'absolute', top: -8, right: -8 }}
                                         onPress={() => handleRemovePhoto(index)}
                                     >
-                                        <Text style={{ backgroundColor: "red", color: "white", padding: 4, borderRadius: 12 }}>
+                                        <Text
+                                            style={{
+                                                backgroundColor: 'red',
+                                                color: 'white',
+                                                padding: 4,
+                                                borderRadius: 12,
+                                            }}
+                                        >
                                             ✕
                                         </Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity
                                         onPress={() => showPhotoSelection(index)}
                                         style={{
-                                            backgroundColor: "rgba(0,0,0,0.5)",
+                                            backgroundColor: 'rgba(0,0,0,0.5)',
                                             padding: 4,
                                             borderRadius: 4,
                                             marginTop: 4,
                                         }}
                                     >
-                                        <Text style={{ fontSize: 12, color: "white", textAlign: "center" }}>Change</Text>
+                                        <Text style={{ fontSize: 12, color: 'white', textAlign: 'center' }}>Change</Text>
                                     </TouchableOpacity>
                                 </View>
                             ))}
-                            {getValues("images").length < 2 && (
+                            {getValues('images').length < 2 && (
                                 <TouchableOpacity
                                     onPress={() => showPhotoSelection(null)}
                                     style={{
                                         width: 100,
                                         height: 100,
-                                        backgroundColor: "#eee",
+                                        backgroundColor: isDarkMode ? darkTheme.backgroundColor : '#eee',
                                         borderRadius: 8,
-                                        alignItems: "center",
-                                        justifyContent: "center",
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
                                     }}
                                 >
-                                    <Text style={{ fontSize: 24 }}>＋</Text>
+                                    <Text style={{ fontSize: 24, color: isDarkMode ? darkTheme.color : '#000' }}>＋</Text>
                                 </TouchableOpacity>
                             )}
                         </View>
-                        {errors.images && <Text style={styles.error}>{errors.images.message}</Text>}
+                        {errors.images && (
+                            <Text style={[styles.error, { color: 'red' }]}>{errors.images.message}</Text>
+                        )}
                     </View>
                 </View>
 
@@ -342,20 +390,35 @@ export const EditProduct = ({ navigation, route }: any) => {
                     animationType="slide"
                     onRequestClose={() => setShowPhotoOptions(false)}
                 >
-                    <View style={styles.modalOverlay}>
-                        <View style={styles.modalContainer}>
-                            <Text style={styles.modalTitle}>Add Photo</Text>
+                    <View
+                        style={[
+                            styles.modalOverlay,
+                            { backgroundColor: (isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor) + 'aa' },
+                        ]}
+                    >
+                        <View
+                            style={[
+                                styles.modalContainer,
+                                { backgroundColor: isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor },
+                            ]}
+                        >
+                            <Text style={[styles.modalTitle, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>
+                                Add Photo
+                            </Text>
                             <TouchableOpacity style={styles.modalOption} onPress={() => handleTakePhoto(photoActionIndex)}>
-                                <Text style={styles.modalOptionText}>Take Photo</Text>
+                                <Text style={[styles.modalOptionText, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>
+                                    Take Photo
+                                </Text>
                             </TouchableOpacity>
-                            <TouchableOpacity
-                                style={styles.modalOption}
-                                onPress={() => handleChooseFromLibrary(photoActionIndex)}
-                            >
-                                <Text style={styles.modalOptionText}>Choose from Library</Text>
+                            <TouchableOpacity style={styles.modalOption} onPress={() => handleChooseFromLibrary(photoActionIndex)}>
+                                <Text style={[styles.modalOptionText, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>
+                                    Choose from Library
+                                </Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.modalCancel} onPress={() => setShowPhotoOptions(false)}>
-                                <Text style={styles.modalCancelText}>Cancel</Text>
+                                <Text style={[styles.modalCancelText, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>
+                                    Cancel
+                                </Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -372,10 +435,11 @@ export const EditProduct = ({ navigation, route }: any) => {
             </ScrollView>
 
             <CameraVision
-                visible={cameraOpen}
-                onClose={() => setCameraOpen(false)}
+                visible={isCameraOpen}
+                onClose={() => setIsCameraOpen(false)}
                 onPhotoTaken={handlePhotoTaken}
             />
         </SafeAreaView>
+
     );
 };

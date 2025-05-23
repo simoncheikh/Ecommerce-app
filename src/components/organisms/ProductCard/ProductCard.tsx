@@ -2,10 +2,10 @@ import React from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { styles } from "./ProductCard.styles";
 import { ProductCardProps } from "./ProductCard.type";
-import { useThemeContext } from "../../../store/themeContext/ThemeContext";
+import { useThemeStore } from "../../../store/themeStore/ThemeStore";
 
 export const ProductCard = ({ source, title, price, cardWidth, onPress }: ProductCardProps) => {
-    const { theme } = useThemeContext();
+    const theme = useThemeStore((state) => state.theme);
     const isDark = theme === 'dark';
 
     return (

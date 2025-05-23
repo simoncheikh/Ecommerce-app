@@ -7,7 +7,7 @@ const customFonts = GlobalStyles.fonts;
 export const styles = StyleSheet.create({
     container: {
         flex: 1,
-        position: 'relative', 
+        position: 'relative',
     },
 
     profileSection: {
@@ -67,6 +67,40 @@ export const styles = StyleSheet.create({
     buttonWrapper: {
         marginTop: 20,
         alignItems: "center",
+    },
+    modalOverlay: {
+        flex: 1,
+        justifyContent: 'flex-end',
+    },
+    modalContainer: {
+        backgroundColor: 'white',
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
+        padding: 20,
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    modalOption: {
+        paddingVertical: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
+    },
+    modalOptionText: {
+        fontSize: 16,
+        textAlign: 'center',
+    },
+    modalCancel: {
+        paddingVertical: 16,
+        marginTop: 8,
+    },
+    modalCancelText: {
+        fontSize: 16,
+        textAlign: 'center',
+        color: 'red',
     },
 
 })

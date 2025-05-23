@@ -71,7 +71,7 @@ export const styles = StyleSheet.create({
     borderRadius: 50,
     marginTop: 8,
     borderWidth: 1,
-    borderColor:  '#ddd',
+    borderColor: '#ddd',
   },
   placeholder: {
     width: 100,
@@ -82,11 +82,87 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
     borderWidth: 1,
-    borderColor:  '#ddd',
+    borderColor: '#ddd',
   },
   placeholderText: {
-    color:  '#666',
+    color: '#666',
     fontSize: 12,
     textAlign: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  modalOption: {
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  modalOptionText: {
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  modalCancel: {
+    paddingVertical: 16,
+    marginTop: 8,
+  },
+  modalCancelText: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: 'red',
+  },
+  inputGroup: {
+  },
+  profileImageContainer: {
+    position: "relative"
+  },
+  profileImage: {
+    width: 100, height: 100, borderRadius: 8
+  },
+  removeImage: {
+    position: "absolute", top: -8, right: -8
+  },
+  removeText: {
+    backgroundColor: "red",
+    color: "white",
+    padding: 4,
+    borderRadius: 12
+  },
+  changeProfileImage: {
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: 4,
+    borderRadius: 4,
+    marginTop: 4
+  },
+  addProfileImage: {
+    width: 100,
+    height: 100,
+    backgroundColor: "#eee",
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  addText: {
+    fontSize: 24
+  },
+  ImagesContainer: {
+    flexDirection: "row", gap: 10
+  },
+  changeText: {
+    fontSize: 12,
+    color: "white",
+    textAlign: "center"
   }
 });

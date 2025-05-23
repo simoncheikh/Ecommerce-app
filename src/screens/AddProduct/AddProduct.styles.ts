@@ -114,4 +114,44 @@ export const styles = StyleSheet.create({
         textAlign: 'center',
         color: 'red',
     },
+    profileImageContainer: {
+        position: "relative"
+    },
+    profileImages: {
+        width: 100, height: 100, borderRadius: 8
+    },
+    removeImage: {
+        position: "absolute", top: -8, right: -8
+    },
+    removeText: {
+        backgroundColor: "red",
+        color: "white",
+        padding: 4,
+        borderRadius: 12
+    },
+    changeProfileImage: {
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        padding: 4,
+        borderRadius: 4,
+        marginTop: 4
+    },
+    addProfileImage: {
+        width: 100,
+        height: 100,
+        backgroundColor: "#eee",
+        borderRadius: 8,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    addText: {
+        fontSize: 24
+    },
+    ImagesContainer: {
+        flexDirection: "row", gap: 10
+    },
+    changeText: {
+        fontSize: 12,
+        color: "white",
+        textAlign: "center"
+    }
 })

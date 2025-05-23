@@ -8,7 +8,7 @@ export const GlobalStyles = {
             color: "black"
         },
         darkTheme: {
-            backgroundColor: "#1b1b1d",
+            backgroundColor: "#3b3838",
             color: "#eee"
         }
     },

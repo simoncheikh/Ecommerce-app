@@ -74,4 +74,8 @@ export const styles = StyleSheet.create({
         color: GlobalStyles.color.primary,
         fontFamily: customFonts.regular.normalText,
     },
+    resendSmallContainer: {
+        display: "flex",
+        flexDirection: "row"
+    }
 })

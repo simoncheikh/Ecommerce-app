@@ -15,6 +15,7 @@ export const Textfield = ({ control, name, placeholder, type }: TextfieldProps) 
                     placeholderTextColor={"gray"}
                     value={value}
                     onChangeText={onChange}
+                    keyboardType={type}
                     secureTextEntry={name == "password" ? true : false}
                 />
             )}
