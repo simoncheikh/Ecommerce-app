@@ -21,11 +21,13 @@ import { GlobalStyles } from "../../styles/GobalStyles";
 import { useQueryClient } from "@tanstack/react-query";
 import { NavBar } from "../../components/organisms/NavBar/NavBar";
 import { API_BASE_URL } from "../../constants/apiConfig";
+import SkeletonPlaceholder from "react-native-skeleton-placeholder";
 
 const screenWidth = Dimensions.get("window").width;
 
 function useDebounce(value: string, delay: number) {
     const [debouncedValue, setDebouncedValue] = useState(value);
+
     useEffect(() => {
         const handler = setTimeout(() => setDebouncedValue(value), delay);
         return () => clearTimeout(handler);
@@ -78,11 +80,7 @@ export const HomePage = ({ navigation }: any) => {
         enabled: !!token?.data?.accessToken,
         staleTime: 1000 * 60 * 5,
     });
-
-
     const allProducts = data?.pages.flatMap(page => page.products) ?? [];
-
-
 
     const {
         data: searchResults = [],
@@ -107,10 +105,8 @@ export const HomePage = ({ navigation }: any) => {
         if (debouncedSearchQuery.trim()) {
             await refetchSearch();
         } else {
-            // Clear cache for infinite query to force restart from page 1
             await queryClient.removeQueries({ queryKey: ["allProducts"] });
         }
-
         setRefreshing(false);
     };
 
@@ -128,6 +124,9 @@ export const HomePage = ({ navigation }: any) => {
     };
 
     const productsToShow = debouncedSearchQuery.trim() ? searchResults : allProducts;
+
+ 
+
 
     return (
         <SafeAreaView
@@ -233,9 +232,8 @@ export const HomePage = ({ navigation }: any) => {
                         </View>
                     </View>
                 </Modal>
-
-                <FlatList
-                    data={productsToShow} 
+                < FlatList
+                    data={productsToShow}
                     keyExtractor={(item) => item._id}
                     renderItem={({ item }) => (
                         <ProductCard
@@ -259,42 +257,25 @@ export const HomePage = ({ navigation }: any) => {
                     contentContainerStyle={styles.productCard}
                     ListEmptyComponent={
                         !isFetchingAll && !isSearching ? (
-                            <Text
-                                style={{
-                                    textAlign: "center",
-                                    marginTop: 20,
-                                    color: isDark
-                                        ? GlobalStyles.theme.darkTheme.color
-                                        : GlobalStyles.theme.lightTheme.color,
-                                }}
-                            >
+                            <Text style={{
+                                textAlign: "center",
+                                marginTop: 20,
+                                color: isDark
+                                    ? GlobalStyles.theme.darkTheme.color
+                                    : GlobalStyles.theme.lightTheme.color,
+                            }}>
                                 No products found.
                             </Text>
                         ) : null
                     }
+
                     onEndReached={() => {
                         if (hasNextPage && !isFetchingNextPage) {
                             fetchNextPage();
                         }
                     }}
                     onEndReachedThreshold={0.5}
-                    ListFooterComponent={
-                        isFetchingNextPage ? (
-                            <Text
-                                style={{
-                                    textAlign: "center",
-                                    marginVertical: 10,
-                                    color: isDark
-                                        ? GlobalStyles.theme.darkTheme.color
-                                        : GlobalStyles.theme.lightTheme.color,
-                                }}
-                            >
-                                Loading more...
-                            </Text>
-                        ) : null
-                    }
                 />
-
             </View>
         </SafeAreaView>
     );

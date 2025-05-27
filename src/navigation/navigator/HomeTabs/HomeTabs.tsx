@@ -13,43 +13,63 @@ import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { useAuthStore } from '../../../store/sessionStore/AuthStore';
 import { useCameraStore } from '../../../store/cameraStore/CameraStore';
 import { useThemeStore } from '../../../store/themeStore/ThemeStore';
+import { ShopCart } from '../../../screens/ShopCart/ShopCart';
 
 const Tab = createBottomTabNavigator();
 
-export const HomeTabs = () => {
-    const { logout } = useAuthStore()
+export const HomeTabs: React.FC = () => {
+    const { logout } = useAuthStore();
     const theme = useThemeStore((state) => state.theme);
-
-    const isDark = theme === "dark";
-    const darkTheme = GlobalStyles.theme.darkTheme
-    const lightTheme = GlobalStyles.theme.lightTheme
-    const isCameraOpen = useCameraStore((state) => state.isCameraOpen)
+    const isDark = theme === 'dark';
+    const isCameraOpen = useCameraStore((state) => state.isCameraOpen);
+    const backgroundColor = isDark
+        ? GlobalStyles.theme.darkTheme.backgroundColor
+        : GlobalStyles.theme.lightTheme.backgroundColor;
 
     return (
-        <Tab.Navigator tabBar={(props) => <MyTabBar {...props} />}
-            initialRouteName="Home"
-        >
-            <Tab.Screen name="Home" component={HomePage} options={{ headerShown: false, tabBarIcon: require("../../../assets/home.png") }} />
+        <Tab.Navigator tabBar={(props) => <MyTabBar {...props} />} initialRouteName="Home">
+            <Tab.Screen
+                name="Home"
+                component={HomePage}
+                options={{
+                    headerShown: false,
+                    tabBarIcon: require('../../../assets/home.png'),
+                }}
+            />
             <Tab.Screen
                 name="Profile"
                 component={ProfilePage}
                 options={{
                     headerShown: false,
-                    tabBarIcon: require("../../../assets/profile.png"),
+                    tabBarIcon: require('../../../assets/profile.png'),
                 }}
+            />
+            <Tab.Screen
+                name="My Cart"
+                component={ShopCart}
+                options={{
+                    headerShown: true,
+                    tabBarIcon: require('../../../assets//cart.png'),
+                    headerTitle: 'My Cart',
+                    // headerStyle: { backgroundColor },
+                    // headerTitleStyle: {
+                    //     color: GlobalStyles.color.primary,
+                    //     fontFamily: GlobalStyles.fonts.regular.title,
+                    // },
+                    // headerBackTitleStyle: {
+                    //     fontFamily: GlobalStyles.fonts.regular.title,
+                    // },
+                }}
+
             />
             <Tab.Screen
                 name="Settings"
                 component={SettingsPage}
                 options={{
                     headerShown: true,
-                    tabBarIcon: require("../../../assets/settings.png"),
-                    headerTitle: "Settings",
-                    headerStyle: {
-                        backgroundColor: isDark
-                            ? GlobalStyles.theme.darkTheme.backgroundColor
-                            : GlobalStyles.theme.lightTheme.backgroundColor,
-                    },
+                    tabBarIcon: require('../../../assets/settings.png'),
+                    headerTitle: 'Settings',
+                    headerStyle: { backgroundColor },
                     headerTitleStyle: {
                         color: GlobalStyles.color.primary,
                         fontFamily: GlobalStyles.fonts.regular.title,
@@ -60,65 +80,53 @@ export const HomeTabs = () => {
                     headerRight: () => (
                         <TouchableOpacity onPress={logout} style={{ marginRight: 15 }}>
                             <Image
-                                source={require("../../../assets/logout.png")}
-                                style={{ width: 24, height: 24, tintColor: "#ff3b30" }}
+                                source={require('../../../assets/logout.png')}
+                                style={{ width: 24, height: 24, tintColor: '#ff3b30' }}
                             />
                         </TouchableOpacity>
                     ),
                 }}
+
             />
-
-
             <Tab.Screen
                 name="ProductDetails"
                 component={ProductDetails}
-                options={{
-                    headerShown: false,
-                }}
+                options={{ headerShown: false }}
             />
             <Tab.Screen
                 name="EditProfile"
                 component={EditProfile}
                 options={{
-                    headerShown: true,
+                    headerShown: !isCameraOpen,
                     headerTransparent: true,
-                    headerTitle: '',
+                    headerTitle: 'Edit Profile',
                     headerShadowVisible: false,
+                    headerTitleStyle: { color: GlobalStyles.color.primary },
+                    headerBackTitleStyle: { fontFamily: GlobalStyles.fonts.regular.title },
                 }}
             />
             <Tab.Screen
                 name="AddProduct"
                 component={AddProduct}
                 options={{
-                    headerShown: isCameraOpen == true ? false : true,
+                    headerShown: !isCameraOpen,
                     headerTitle: 'Add Product',
                     headerShadowVisible: false,
-                    headerTitleStyle: {
-                        color: GlobalStyles.color.primary
-                    },
-                    headerBackTitleStyle: {
-                        fontFamily: GlobalStyles.fonts.regular.title,
-
-                    },
+                    headerTitleStyle: { color: GlobalStyles.color.primary },
+                    headerBackTitleStyle: { fontFamily: GlobalStyles.fonts.regular.title },
                 }}
             />
             <Tab.Screen
                 name="EditProduct"
                 component={EditProduct}
                 options={{
-                    headerShown: isCameraOpen == true ? false : true,
+                    headerShown: !isCameraOpen,
                     headerTitle: 'Edit Product',
                     headerShadowVisible: false,
-                    headerTitleStyle: {
-                        color: GlobalStyles.color.primary
-                    },
-                    headerBackTitleStyle: {
-                        fontFamily: GlobalStyles.fonts.regular.title,
-
-                    }
+                    headerTitleStyle: { color: GlobalStyles.color.primary },
+                    headerBackTitleStyle: { fontFamily: GlobalStyles.fonts.regular.title },
                 }}
             />
-
         </Tab.Navigator>
     );
 };

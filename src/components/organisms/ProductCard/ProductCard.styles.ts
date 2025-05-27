@@ -13,13 +13,14 @@ export const styles = StyleSheet.create({
         shadowRadius: 6,
         elevation: 3,
         position: "relative",
+        alignSelf:'center'
     },
     favoriteContainer: {
         zIndex: 1,
         backgroundColor: "#fff",
         borderRadius: 16,
         padding: 6,
-        alignItems:"center"
+        alignItems: "center"
     },
     heartIcon: {
         width: 20,
@@ -43,5 +44,9 @@ export const styles = StyleSheet.create({
         fontWeight: "bold",
         fontSize: 14,
         color: GlobalStyles.color.primary,
+    },
+    skeletonContainer: {
+        padding: 12,
+        backgroundColor:'white'
     },
 });

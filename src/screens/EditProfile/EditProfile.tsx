@@ -17,6 +17,7 @@ import { PERMISSIONS, request, RESULTS } from "react-native-permissions";
 import { launchImageLibrary } from "react-native-image-picker";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useThemeStore } from "../../store/themeStore/ThemeStore";
+import { useCameraStore } from "../../store/cameraStore/CameraStore";
 
 const schema = z.object({
     firstName: z.string().min(2, { message: "FirstName must be at least 2 characters long" }),
@@ -30,7 +31,8 @@ export const EditProfile = ({ navigation }: any) => {
     const { token } = useAuthStore();
     const [userData, setUserData] = useState<any>(null);
     const theme = useThemeStore((state) => state.theme)
-    const [cameraOpen, setCameraOpen] = useState(false);
+    const isCameraOpen = useCameraStore((state) => state.isCameraOpen)
+    const setIsCameraOpen = useCameraStore((state) => state.setCameraOpen);
     const [showPhotoOptions, setShowPhotoOptions] = useState(false);
 
     const isDarkMode = theme == 'dark'
@@ -75,8 +77,8 @@ export const EditProfile = ({ navigation }: any) => {
 
     useEffect(() => {
         const backAction = () => {
-            if (cameraOpen) {
-                setCameraOpen(false);
+            if (isCameraOpen) {
+                setIsCameraOpen(false);
                 return true;
             }
             return false;
@@ -85,11 +87,11 @@ export const EditProfile = ({ navigation }: any) => {
         const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
 
         return () => backHandler.remove();
-    }, [cameraOpen]);
+    }, [isCameraOpen]);
 
     const handlePhotoTaken = (uri: string) => {
         setValue("profileImage", uri, { shouldValidate: true });
-        setCameraOpen(false);
+        setIsCameraOpen(false);
     };
 
     const showPhotoSelection = () => {
@@ -97,7 +99,7 @@ export const EditProfile = ({ navigation }: any) => {
     };
 
     const handleTakePhoto = () => {
-        setCameraOpen(true);
+        setIsCameraOpen(true);
         setShowPhotoOptions(false);
     };
 
@@ -292,8 +294,8 @@ export const EditProfile = ({ navigation }: any) => {
             </View>
 
             <CameraVision
-                visible={cameraOpen}
-                onClose={() => setCameraOpen(false)}
+                visible={isCameraOpen}
+                onClose={() => setIsCameraOpen(false)}
                 onPhotoTaken={handlePhotoTaken}
             />
         </SafeAreaView>

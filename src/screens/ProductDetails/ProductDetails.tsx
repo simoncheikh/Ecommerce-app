@@ -25,6 +25,7 @@ import { DeleteProductApi } from "../../api/products/deleteProduct/DeleteProduct
 import { Button } from "../../components/atoms/Button/Button";
 import { useFocusEffect } from "@react-navigation/native";
 import { saveImageToGallery } from "../../utils/SaveImageToGallery";
+import { useCartStore } from "../../store/cartStore/cartStore";
 
 export const ProductDetails = ({ route, navigation }: any) => {
     const { token } = useAuthStore();
@@ -128,6 +129,21 @@ export const ProductDetails = ({ route, navigation }: any) => {
             </Text>
         </SafeAreaView>
     }
+
+    const addToCart = () => {
+        if (!productData) return;
+
+        useCartStore.getState().addToCart({
+            id: productData._id,
+            title: productData.title,
+            price: productData.price,
+            quantity,
+            image: `${API_BASE_URL}${productData?.images?.[0]?.url ?? ""}`,
+        });
+
+        Alert.alert("Added to Cart", `${quantity} item(s) added to your cart.`);
+        setQuantity(1)
+    };
 
     return (
         <SafeAreaView
@@ -235,7 +251,7 @@ export const ProductDetails = ({ route, navigation }: any) => {
                     </View>
 
                     <View style={styles.buttonContainer}>
-                        <TouchableOpacity style={styles.cartMainButton}>
+                        <TouchableOpacity style={styles.cartMainButton} onPress={addToCart}>
                             <Image
                                 source={require("../../assets/cart.png")}
                                 style={styles.iconImageSmall}
