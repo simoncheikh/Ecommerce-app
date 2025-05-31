@@ -13,13 +13,17 @@ import { saveImageToGallery } from "../../utils/SaveImageToGallery";
 import { useFocusEffect } from "@react-navigation/native";
 
 export const ProfilePage = ({ navigation }: any) => {
-    const { token } = useAuthStore();
-    const theme = useThemeStore((state) => state.theme)
-    const isDarkMode = theme == 'dark'
+    const theme = useThemeStore((state) => state.theme);
+    const token = useAuthStore((state) => state.token);
+    const isLoggedIn = !!token;
+    const isDarkMode = theme === 'dark';
 
-    const darkTheme = GlobalStyles.theme.darkTheme
-    const lightTheme = GlobalStyles.theme.lightTheme
-
+    const backgroundColor = isDarkMode 
+        ? GlobalStyles.theme.darkTheme.backgroundColor 
+        : GlobalStyles.theme.lightTheme.backgroundColor;
+    const textColor = isDarkMode 
+        ? GlobalStyles.theme.darkTheme.color 
+        : GlobalStyles.theme.lightTheme.color;
 
     const {
         data: userData,
@@ -39,12 +43,11 @@ export const ProfilePage = ({ navigation }: any) => {
         refetchOnReconnect: true,
     });
 
-    useFocusEffect(
-        useCallback(() => {
-            refetch();
-        }, [refetch])
-    );
+    const refetchProfile = useCallback(() => {
+        refetch();
+    }, [refetch]);
 
+    useFocusEffect(refetchProfile);
 
     const openGmailCompose = async (email: string) => {
         const gmailIntentUrl = `googlegmail://co?to=${email}`;
@@ -92,79 +95,56 @@ export const ProfilePage = ({ navigation }: any) => {
 
     const handleEmailPress = () => {
         if (!userData?.data?.user?.email) return;
-        openGmailCompose(userData?.data?.user?.email);
+        openGmailCompose(userData.data.user.email);
     };
 
+    if (!isLoggedIn || !token?.data?.accessToken) {
+        return (
+            <SafeAreaView style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+                <Text style={{ color: "red", fontSize: 16 }}>You must be logged in to view profile.</Text>
+            </SafeAreaView>
+        );
+    }
+
+    const profileImageUri = userData?.data?.user?.profileImage?.url 
+        ? `${API_BASE_URL}${userData.data.user.profileImage.url}`
+        : undefined;
+
     return (
-        <SafeAreaView
-            style={[
-                styles.container,
-                { backgroundColor: isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor },
-            ]}
-        >
+        <SafeAreaView style={[styles.container, { backgroundColor }]}>
             <View style={styles.header}>
-                <Text
-                    style={[
-                        styles.headerTitle,
-                        { color: isDarkMode ? darkTheme.color : lightTheme.color },
-                    ]}
-                >
+                <Text style={[styles.headerTitle, { color: textColor }]}>
                     My Profile
                 </Text>
                 <TouchableOpacity onPress={() => navigation.navigate("EditProfile", { userData })}>
-                    <Text
-                        style={[
-                            styles.editButton,
-                            { color: isDarkMode ? darkTheme.color : lightTheme.color },
-                        ]}
-                    >
+                    <Text style={[styles.editButton, { color: textColor }]}>
                         Edit
                     </Text>
                 </TouchableOpacity>
             </View>
 
-            <View style={[styles.profileSection, { backgroundColor: isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor }]}>
-                <Pressable onLongPress={() => saveImageToGallery(`${API_BASE_URL}${userData?.data?.user?.profileImage?.url}`)}>
+            <View style={[styles.profileSection, { backgroundColor }]}>
+                <Pressable onLongPress={() => profileImageUri && saveImageToGallery(profileImageUri)}>
                     <Image
                         style={styles.profileImage}
-                        source={{ uri: `${API_BASE_URL}${userData?.data?.user?.profileImage?.url}` }}
+                        source={{ uri: profileImageUri }}
                     />
                 </Pressable>
-                <Text
-                    style={[
-                        styles.name,
-                        { color: isDarkMode ? darkTheme.color : lightTheme.color },
-                    ]}
-                >
+                <Text style={[styles.name, { color: textColor }]}>
                     {userData?.data?.user?.firstName} {userData?.data?.user?.lastName}
                 </Text>
                 <TouchableOpacity onPress={handleEmailPress}>
-                    <Text
-                        style={[
-                            styles.email,
-                            {
-                                textDecorationLine: "underline",
-                                color: isDarkMode ? "#66b2ff" : "#0066cc",
-                            },
-                        ]}
-                    >
+                    <Text style={[styles.email, {
+                        textDecorationLine: "underline",
+                        color: isDarkMode ? "#66b2ff" : "#0066cc",
+                    }]}>
                         {userData?.data?.user?.email}
                     </Text>
                 </TouchableOpacity>
-                <Text
-                    style={[
-                        styles.verified,
-                        { color: isDarkMode ? darkTheme.color : lightTheme.color },
-                    ]}
-                >
+                <Text style={[styles.verified, { color: textColor }]}>
                     {userData?.data?.user?.isEmailVerified ? "✅ Verified Email" : "❌ Not Verified"}
                 </Text>
-                <Text
-                    style={[
-                        styles.joinedAt,
-                        { color: isDarkMode ? darkTheme.color : lightTheme.color },
-                    ]}
-                >
+                <Text style={[styles.joinedAt, { color: textColor }]}>
                     Joined on {new Date(userData?.data?.user?.createdAt).toDateString()}
                 </Text>
             </View>

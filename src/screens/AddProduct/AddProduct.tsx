@@ -1,7 +1,7 @@
-import { Alert, BackHandler, Image, Modal, PermissionsAndroid, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, BackHandler, Image, Modal, Platform, Pressable, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { launchImageLibrary } from "react-native-image-picker";
 import { PERMISSIONS, request, RESULTS } from "react-native-permissions";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { Button } from "../../components/atoms/Button/Button";
 import { Textfield } from "../../components/atoms/Textfield/Textfield";
 import { CameraVision } from "../../components/molecules/Camera/cameraVision";
@@ -9,7 +9,6 @@ import { useAuthStore } from "../../store/sessionStore/AuthStore";
 import { styles } from "./AddProduct.styles"
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { API_BASE_URL } from "../../constants/apiConfig";
 import { z } from "zod";
 import { GlobalStyles } from "../../styles/GobalStyles";
 import { GoogleMaps } from "../../components/organisms/Maps/googleMaps";
@@ -17,15 +16,12 @@ import { AddProductApi } from "../../api/products/addProduct/AddProductApi";
 import { useMutation } from "@tanstack/react-query";
 import { useCameraStore } from "../../store/cameraStore/CameraStore";
 import { useThemeStore } from "../../store/themeStore/ThemeStore";
-
-
+import { sendNewProductNotification } from "../../utils/PushNotification";
 
 const schema = z.object({
     title: z.string().min(2, { message: "Title must be at least 2 characters long" }),
     description: z.string().min(2, { message: "Description must be at least 2 characters long" }),
-    price: z
-        .string().min(2, { message: "Price must be a number greater than 0" }),
-
+    price: z.string().min(2, { message: "Price must be a number greater than 0" }),
     images: z
         .array(z.string().nonempty("Invalid image"))
         .max(2, "You can upload up to 2 images")
@@ -37,24 +33,22 @@ const schema = z.object({
     }),
 });
 
-
-
 type FormData = z.infer<typeof schema>;
 
 export const AddProduct = ({ navigation, route }: any) => {
-    const { token } = useAuthStore();
-    const theme = useThemeStore((state) => state.theme)
-    const isCameraOpen = useCameraStore((state) => state.isCameraOpen)
+    const token = useAuthStore((state) => state.token);
+    const theme = useThemeStore((state) => state.theme);
+    const isCameraOpen = useCameraStore((state) => state.isCameraOpen);
     const setIsCameraOpen = useCameraStore((state) => state.setCameraOpen);
     const [imageIndex, setImageIndex] = useState<number | null>(null);
     const [showPhotoOptions, setShowPhotoOptions] = useState(false);
     const [photoActionIndex, setPhotoActionIndex] = useState<number | null>(null);
 
-    const isDarkMode = theme == 'dark'
+    const isDarkMode = theme === 'dark';
+    const isLoggedIn = !!token;
 
-    const darkTheme = GlobalStyles.theme.darkTheme
-    const lightTheme = GlobalStyles.theme.lightTheme
-
+    const { darkTheme, lightTheme } = GlobalStyles.theme;
+    const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
     const selectedLatitude = route.params?.selectedLatitude;
     const selectedLongitude = route.params?.selectedLongitude;
@@ -72,7 +66,7 @@ export const AddProduct = ({ navigation, route }: any) => {
         defaultValues: route?.params?.formData || {
             title: "",
             description: "",
-            price: 0,
+            price: "",
             images: [],
             location: {
                 name: "",
@@ -81,6 +75,8 @@ export const AddProduct = ({ navigation, route }: any) => {
             },
         },
     });
+
+    const formValues = useMemo(() => control._formValues, [control._formValues]);
 
     useEffect(() => {
         if (route.params?.selectedLatitude && route.params?.selectedLongitude) {
@@ -92,23 +88,20 @@ export const AddProduct = ({ navigation, route }: any) => {
         }
     }, [route.params?.selectedLatitude, route.params?.selectedLongitude]);
 
-
-    useEffect(() => {
-        const backAction = () => {
-            if (isCameraOpen) {
-                setIsCameraOpen(false);
-                return true;
-            }
-            return false;
-        };
-
-        const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
-        return () => backHandler.remove();
+    const handleBackAction = useCallback(() => {
+        if (isCameraOpen) {
+            setIsCameraOpen(false);
+            return true;
+        }
+        return false;
     }, [isCameraOpen]);
 
+    useEffect(() => {
+        const backHandler = BackHandler.addEventListener("hardwareBackPress", handleBackAction);
+        return () => backHandler.remove();
+    }, [handleBackAction]);
 
-
-    const handlePhotoTaken = (uri: string) => {
+    const handlePhotoTaken = useCallback((uri: string) => {
         const currentImages = getValues("images");
         const newImages =
             imageIndex !== null
@@ -117,36 +110,35 @@ export const AddProduct = ({ navigation, route }: any) => {
 
         setValue("images", newImages, { shouldValidate: true });
         setIsCameraOpen(false);
-    };
+    }, [imageIndex, getValues, setValue]);
 
-
-    const handleRemovePhoto = (index: number) => {
+    const handleRemovePhoto = useCallback((index: number) => {
         const currentImages = getValues("images");
         const updated = currentImages.filter((_, i) => i !== index);
         setValue("images", updated, { shouldValidate: true });
-    };
+    }, [getValues, setValue]);
 
-    const handleNavigation = () => {
+    const handleNavigation = useCallback(() => {
         navigation.navigate("Map", {
             latitude: getValues("location").latitude || 33.5401,
             longitude: getValues("location").longitude || 33.8342,
             formData: getValues(),
             source: 'AddProduct'
         });
-    };
+    }, [getValues, navigation]);
 
-    const showPhotoSelection = (index: number | null = null) => {
+    const showPhotoSelection = useCallback((index: number | null = null) => {
         setPhotoActionIndex(index);
         setShowPhotoOptions(true);
-    };
+    }, []);
 
-    const handleTakePhoto = (index: number | null = null) => {
+    const handleTakePhoto = useCallback((index: number | null = null) => {
         setImageIndex(index);
         setIsCameraOpen(true);
         setShowPhotoOptions(false);
-    };
+    }, []);
 
-    const handleChooseFromLibrary = async (index: number | null = null) => {
+    const handleChooseFromLibrary = useCallback(async (index: number | null = null) => {
         setShowPhotoOptions(false);
 
         let permissionResult;
@@ -180,13 +172,24 @@ export const AddProduct = ({ navigation, route }: any) => {
                 : [...currentImages, uri];
 
         setValue("images", newImages, { shouldValidate: true });
-    };
+    }, [getValues, setValue]);
 
     const mutation = useMutation({
         mutationFn: AddProductApi,
-        onSuccess: () => {
+        onSuccess: (response) => {
             Alert.alert("Success", "Product added successfully");
-            reset();
+            sendNewProductNotification(response?.data?._id ?? "default-id", response?.data.title ?? "New Product");
+            reset({
+                title: "",
+                description: "",
+                price: "",
+                images: [],
+                location: {
+                    name: "",
+                    latitude: 0,
+                    longitude: 0,
+                },
+            });
             navigation.goBack();
         },
         onError: (error: any) => {
@@ -194,7 +197,7 @@ export const AddProduct = ({ navigation, route }: any) => {
         },
     });
 
-    const handleAddProduct = (data: FormData) => {
+    const handleAddProduct = useCallback((data: FormData) => {
         if (!token?.data?.accessToken) {
             Alert.alert("Error", "You need to be logged in to add products");
             return;
@@ -217,34 +220,40 @@ export const AddProduct = ({ navigation, route }: any) => {
             images: data.images.map(uri => ({ url: uri, _id: "" })),
             accessToken: token.data.accessToken,
         });
-    };
+    }, [mutation, token]);
 
-
+    if (!isLoggedIn || !token?.data?.accessToken) {
+        return (
+            <SafeAreaView style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+                <Text style={{ color: "red", fontSize: 16 }}>You must be logged in to view products.</Text>
+            </SafeAreaView>
+        );
+    }
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor }]}>
-            <ScrollView style={{ backgroundColor: isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor }}>
-                <View style={[styles.formCard, { backgroundColor: isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor }]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+            <ScrollView style={{ backgroundColor: currentTheme.backgroundColor }}>
+                <View style={[styles.formCard, { backgroundColor: currentTheme.backgroundColor }]}>
 
                     <View style={styles.inputGroup}>
-                        <Text style={[styles.label, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>Title</Text>
+                        <Text style={[styles.label, { color: currentTheme.color }]}>Title</Text>
                         <Textfield control={control} name="title" placeholder="Enter Title" />
                         {errors.title && <Text style={[styles.error, { color: 'red' }]}>{errors.title.message}</Text>}
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <Text style={[styles.label, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>Description</Text>
+                        <Text style={[styles.label, { color: currentTheme.color }]}>Description</Text>
                         <Textfield control={control} name="description" placeholder="Enter Description" />
                         {errors.description && <Text style={[styles.error, { color: 'red' }]}>{errors.description.message}</Text>}
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <Text style={[styles.label, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>Price</Text>
+                        <Text style={[styles.label, { color: currentTheme.color }]}>Price</Text>
                         <Textfield control={control} name="price" placeholder="Enter Price" type="numeric" />
                         {errors.price && <Text style={[styles.error, { color: 'red' }]}>{errors.price.message}</Text>}
                     </View>
 
-                    <Text style={[styles.label, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>Add Location</Text>
+                    <Text style={[styles.label, { color: currentTheme.color }]}>Add Location</Text>
                     <Textfield control={control} name="location.name" placeholder="Location Name" />
 
                     <Pressable onPress={handleNavigation} style={styles.mapContainer}>
@@ -255,23 +264,23 @@ export const AddProduct = ({ navigation, route }: any) => {
                     </Pressable>
 
                     <View style={styles.inputGroup}>
-                        <Text style={[styles.label, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>Product Images</Text>
+                        <Text style={[styles.label, { color: currentTheme.color }]}>Product Images</Text>
                         <View style={styles.ImagesContainer}>
-                            {control._formValues.images.map((uri, index) => (
+                            {formValues.images.map((uri: string, index: number) => (
                                 <View key={index} style={{ position: "relative" }}>
                                     <Image source={{ uri }} style={styles.profileImage} />
                                     <TouchableOpacity style={styles.removeImage} onPress={() => handleRemovePhoto(index)}>
-                                        <Text style={[styles.removeText, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>✕</Text>
+                                        <Text style={[styles.removeText, { color: currentTheme.color }]}>✕</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={() => showPhotoSelection(index)} style={styles.changeProfileImage}>
-                                        <Text style={[styles.changeText, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>Change</Text>
+                                        <Text style={[styles.changeText, { color: currentTheme.color }]}>Change</Text>
                                     </TouchableOpacity>
                                 </View>
                             ))}
 
-                            {control._formValues.images.length < 2 && (
+                            {formValues.images.length < 2 && (
                                 <TouchableOpacity onPress={() => showPhotoSelection(null)} style={styles.addProfileImage}>
-                                    <Text style={{ fontSize: 24, color: isDarkMode ? darkTheme.color : lightTheme.color }}>＋</Text>
+                                    <Text style={{ fontSize: 24, color: currentTheme.color }}>＋</Text>
                                 </TouchableOpacity>
                             )}
                         </View>
@@ -285,20 +294,20 @@ export const AddProduct = ({ navigation, route }: any) => {
                     animationType="slide"
                     onRequestClose={() => setShowPhotoOptions(false)}
                 >
-                    <View style={[styles.modalOverlay, { backgroundColor: (isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor) + 'aa' }]}>
-                        <View style={[styles.modalContainer, { backgroundColor: isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor }]}>
-                            <Text style={[styles.modalTitle, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>Add Photo</Text>
+                    <View style={[styles.modalOverlay, { backgroundColor: currentTheme.backgroundColor + 'aa' }]}>
+                        <View style={[styles.modalContainer, { backgroundColor: currentTheme.backgroundColor }]}>
+                            <Text style={[styles.modalTitle, { color: currentTheme.color }]}>Add Photo</Text>
 
                             <TouchableOpacity style={styles.modalOption} onPress={() => handleTakePhoto(photoActionIndex)}>
-                                <Text style={[styles.modalOptionText, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>Take Photo</Text>
+                                <Text style={[styles.modalOptionText, { color: currentTheme.color }]}>Take Photo</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity style={styles.modalOption} onPress={() => handleChooseFromLibrary(photoActionIndex)}>
-                                <Text style={[styles.modalOptionText, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>Choose from Library</Text>
+                                <Text style={[styles.modalOptionText, { color: currentTheme.color }]}>Choose from Library</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity style={styles.modalCancel} onPress={() => setShowPhotoOptions(false)}>
-                                <Text style={[styles.modalCancelText, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>Cancel</Text>
+                                <Text style={[styles.modalCancelText, { color: currentTheme.color }]}>Cancel</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -308,7 +317,7 @@ export const AddProduct = ({ navigation, route }: any) => {
                     <Button
                         label={mutation.isPending ? "Creating Product..." : "Submit"}
                         variant="primary"
-                        disabled={!isValid}
+                        disabled={!isValid || mutation.isPending}
                         onClick={handleSubmit(handleAddProduct)}
                     />
                 </View>
@@ -320,6 +329,5 @@ export const AddProduct = ({ navigation, route }: any) => {
                 onPhotoTaken={handlePhotoTaken}
             />
         </SafeAreaView>
-
-    )
-}
+    );
+};

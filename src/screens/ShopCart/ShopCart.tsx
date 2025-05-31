@@ -5,27 +5,13 @@ import { Product } from "./ShopCart.type";
 import { GlobalStyles } from "../../styles/GobalStyles";
 import { useCartStore } from "../../store/cartStore/cartStore";
 import { Animated } from 'react-native';
+import { useAuthStore } from "../../store/sessionStore/AuthStore";
 
 export const ShopCart = () => {
     const { items: products, removeFromCart, updateQuantity } = useCartStore();
+    const token = useAuthStore((state) => state.token);
+    const isLoggedIn = !!token;
     const primaryColor = GlobalStyles.color.primary;
-
-    const handleRemoveItem = (id: string) => {
-        Alert.alert(
-            "Remove Item",
-            "Are you sure you want to remove this item from your cart?",
-            [
-                {
-                    text: "Cancel",
-                    style: "cancel"
-                },
-                {
-                    text: "Remove",
-                    onPress: () => removeFromCart(id)
-                }
-            ]
-        );
-    };
 
     const renderRightActions = (progress: any, dragX: any, id: string) => {
         const trans = dragX.interpolate({
@@ -91,6 +77,15 @@ export const ShopCart = () => {
             </View>
         </Swipeable>
     );
+
+    if (!isLoggedIn || !token?.data?.accessToken) {
+        return (
+            <SafeAreaView style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+                <Text style={{ color: "red", fontSize: 16 }}>You must be logged in to view products.</Text>
+            </SafeAreaView>
+        );
+    }
+
 
     return (
         <SafeAreaView style={styles.container}>

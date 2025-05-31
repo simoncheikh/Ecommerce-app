@@ -35,6 +35,7 @@ export const HomeTabs: React.FC = () => {
                     headerShown: false,
                     tabBarIcon: require('../../../assets/home.png'),
                 }}
+                
             />
             <Tab.Screen
                 name="Profile"
@@ -91,7 +92,7 @@ export const HomeTabs: React.FC = () => {
             <Tab.Screen
                 name="ProductDetails"
                 component={ProductDetails}
-                options={{ headerShown: false }}
+                options={{ headerShown: false}}
             />
             <Tab.Screen
                 name="EditProfile"
@@ -99,10 +100,8 @@ export const HomeTabs: React.FC = () => {
                 options={{
                     headerShown: !isCameraOpen,
                     headerTransparent: true,
-                    headerTitle: 'Edit Profile',
+                    headerTitle: '',
                     headerShadowVisible: false,
-                    headerTitleStyle: { color: GlobalStyles.color.primary },
-                    headerBackTitleStyle: { fontFamily: GlobalStyles.fonts.regular.title },
                 }}
             />
             <Tab.Screen

@@ -1,6 +1,6 @@
 export type ButtonProps = {
     onClick: () => void,
     label: string,
-    disabled: boolean,
+    disabled?: boolean,
     variant?: "primary" | "secondary"
 }

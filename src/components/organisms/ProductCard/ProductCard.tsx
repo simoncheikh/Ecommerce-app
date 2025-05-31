@@ -3,8 +3,7 @@ import { Image, Text, TouchableOpacity, View } from "react-native";
 import { styles } from "./ProductCard.styles";
 import { ProductCardProps } from "./ProductCard.type";
 import { useThemeStore } from "../../../store/themeStore/ThemeStore";
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { GlobalStyles } from "../../../styles/GobalStyles";
+import SkeletonPlaceholder from "react-native-skeleton-placeholder";
 
 export const ProductCard = ({ source, title, price, cardWidth, onPress, loading = false }: ProductCardProps & { loading?: boolean }) => {
     const theme = useThemeStore((state) => state.theme);
@@ -12,21 +11,10 @@ export const ProductCard = ({ source, title, price, cardWidth, onPress, loading 
 
     if (loading) {
         return (
-            <View
-                style={{
-                    width: '80%',
-                    padding: 10,
-                    borderRadius: 8,
-                    alignSelf: 'center'
-                }}
-            >
-                <SkeletonPlaceholder
-                    backgroundColor={"#f2fbfc"}
-                    highlightColor={"#e0f7fa"}
-
-                >
-                    <SkeletonPlaceholder.Item flexDirection="row" alignItems="center">
-                        <SkeletonPlaceholder.Item width={60} height={60} borderRadius={50} />
+            <View style={[styles.container, { width: cardWidth, borderWidth: 1, elevation: 0 }]}>
+                <SkeletonPlaceholder>
+                    <SkeletonPlaceholder.Item flexDirection="column" alignItems="center" padding={10} gap={10} width={"100%"}>
+                        <SkeletonPlaceholder.Item width={'80%'} height={100} borderRadius={5} />
                         <SkeletonPlaceholder.Item marginLeft={20}>
                             <SkeletonPlaceholder.Item width={120} height={20} />
                             <SkeletonPlaceholder.Item marginTop={6} width={80} height={20} />
@@ -36,7 +24,6 @@ export const ProductCard = ({ source, title, price, cardWidth, onPress, loading 
             </View>
         );
     }
-
 
     return (
         <TouchableOpacity

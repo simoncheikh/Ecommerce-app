@@ -1,5 +1,9 @@
 module.exports = {
-  presets: ['module:@react-native/babel-preset'],
+  presets: [
+    '@babel/preset-env',
+    '@babel/preset-react',
+    'module:@react-native/babel-preset'
+  ],
   plugins: [
     ['module:react-native-dotenv', {
       moduleName: '@env',

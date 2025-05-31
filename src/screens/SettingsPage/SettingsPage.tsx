@@ -3,12 +3,17 @@ import { styles } from './SettingsPage.style';
 import { useState } from 'react';
 import { useThemeStore } from '../../store/themeStore/ThemeStore';
 import { GlobalStyles } from '../../styles/GobalStyles';
+import { useAuthStore } from '../../store/sessionStore/AuthStore';
 
 export const SettingsPage = () => {
     const theme = useThemeStore((state) => state.theme);
     const toggleTheme = useThemeStore((state) => state.toggleTheme);
+    const token = useAuthStore((state) => state.token);
+
     const isDarkMode = theme === "dark";
     const [value, setValue] = useState(isDarkMode);
+    const isLoggedIn = !!token;
+
 
     const darkTheme = GlobalStyles.theme.darkTheme
     const lightTheme = GlobalStyles.theme.lightTheme
@@ -17,6 +22,14 @@ export const SettingsPage = () => {
         setValue(prev => !prev);
         toggleTheme();
     };
+
+    if (!isLoggedIn || !token?.data?.accessToken) {
+        return (
+            <SafeAreaView style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+                <Text style={{ color: "red", fontSize: 16 }}>You must be logged in to view products.</Text>
+            </SafeAreaView>
+        );
+    }
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor }]}>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { styles } from "./SignUp.styles";
 import {
   SafeAreaView,
@@ -10,7 +10,7 @@ import {
   Modal,
   Platform
 } from "react-native";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Textfield } from "../../components/atoms/Textfield/Textfield";
@@ -35,7 +35,6 @@ type FormData = z.infer<typeof schema>;
 
 export const SignUp = ({ navigation }: any) => {
   const theme = useThemeStore((state) => state.theme);
-  const isDark = theme === "dark";
   const [cameraOpen, setCameraOpen] = useState(false);
   const [showPhotoOptions, setShowPhotoOptions] = useState(false);
 
@@ -57,14 +56,20 @@ export const SignUp = ({ navigation }: any) => {
     },
   });
 
-  const handlePhotoTaken = (uri: string) => {
+  const isDark = theme === "dark";
+  const themeStyles = useMemo(() =>
+    isDark ? GlobalStyles.theme.darkTheme : GlobalStyles.theme.lightTheme,
+    [isDark]
+  );
+
+  const handlePhotoTaken = useCallback((uri: string) => {
     setValue("profileImage", uri, { shouldValidate: true });
     setCameraOpen(false);
-  };
+  }, [setValue]);
 
-  const showPhotoSelection = () => {
+  const showPhotoSelection = useCallback(() => {
     setShowPhotoOptions(true);
-  };
+  }, []);
 
   const signUpMutation = useMutation({
     mutationFn: (data: FormData) => SignUpApi(data),
@@ -76,13 +81,16 @@ export const SignUp = ({ navigation }: any) => {
     },
   });
 
+  const handleSignUp = useCallback((data: FormData) => {
+    signUpMutation.mutate(data);
+  }, [signUpMutation]);
 
-  const handleTakePhoto = () => {
+  const handleTakePhoto = useCallback(() => {
     setCameraOpen(true);
     setShowPhotoOptions(false);
-  };
+  }, []);
 
-  const handleChooseFromLibrary = async () => {
+  const handleChooseFromLibrary = useCallback(async () => {
     setShowPhotoOptions(false);
 
     let permissionResult;
@@ -110,35 +118,23 @@ export const SignUp = ({ navigation }: any) => {
     if (!uri) return;
 
     setValue("profileImage", uri, { shouldValidate: true });
-  };
+  }, [setValue]);
 
-  const handleRemovePhoto = () => {
+  const handleRemovePhoto = useCallback(() => {
     setValue("profileImage", "", { shouldValidate: true });
-  };
+  }, [setValue]);
+
+  const handleSignInNavigation = useCallback(() => {
+    navigation.navigate("SignIn");
+  }, [navigation]);
+
+  const profileImage = getValues("profileImage");
 
   return (
-    <SafeAreaView
-      style={[
-        styles.container,
-        {
-          backgroundColor: isDark
-            ? GlobalStyles.theme.darkTheme.backgroundColor
-            : GlobalStyles.theme.lightTheme.backgroundColor,
-        },
-      ]}
-    >
+    <SafeAreaView style={[styles.container, { backgroundColor: themeStyles.backgroundColor }]}>
       <View style={styles.innerContainer}>
         <View style={styles.titleContainer}>
-          <Text
-            style={[
-              styles.titleLabel,
-              {
-                color: isDark
-                  ? GlobalStyles.theme.darkTheme.color
-                  : GlobalStyles.theme.lightTheme.color,
-              },
-            ]}
-          >
+          <Text style={[styles.titleLabel, { color: themeStyles.color }]}>
             Sign Up
           </Text>
           <Text style={styles.descLabel}>
@@ -167,27 +163,23 @@ export const SignUp = ({ navigation }: any) => {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Profile Image</Text>
             <View style={styles.ImagesContainer}>
-              {getValues("profileImage") ? (
+              {profileImage ? (
                 <View style={styles.profileImageContainer}>
                   <Image
-                    source={{ uri: getValues("profileImage") }}
+                    source={{ uri: profileImage }}
                     style={styles.profileImage}
                   />
                   <TouchableOpacity
                     style={styles.removeImage}
                     onPress={handleRemovePhoto}
                   >
-                    <Text style={styles.removeText}>
-                      ✕
-                    </Text>
+                    <Text style={styles.removeText}>✕</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={showPhotoSelection}
                     style={styles.changeProfileImage}
                   >
-                    <Text style={styles.changeText}>
-                      Change
-                    </Text>
+                    <Text style={styles.changeText}>Change</Text>
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -238,25 +230,18 @@ export const SignUp = ({ navigation }: any) => {
         </Modal>
 
         <Button
-          onClick={handleSubmit((data) => signUpMutation.mutate(data))}
+          onClick={handleSubmit(handleSignUp)}
           label={signUpMutation.isPending ? "Creating user" : "SIGN UP"}
           disabled={!isValid || signUpMutation.isPending}
           variant="primary"
         />
-
       </View>
 
       <View style={styles.haveAnAccStyles}>
-        <Text
-          style={{
-            color: isDark
-              ? GlobalStyles.theme.darkTheme.color
-              : GlobalStyles.theme.lightTheme.color,
-          }}
-        >
+        <Text style={{ color: themeStyles.color }}>
           Already have an account?{" "}
         </Text>
-        <TouchableOpacity onPress={() => navigation.navigate("SignIn")}>
+        <TouchableOpacity onPress={handleSignInNavigation}>
           <Text style={styles.loginStyle}>Sign In</Text>
         </TouchableOpacity>
       </View>

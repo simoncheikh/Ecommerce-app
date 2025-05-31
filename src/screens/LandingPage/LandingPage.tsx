@@ -34,7 +34,6 @@ export const LandingPage = ({ navigation }: any) => {
     ).start();
 
     const timer = setTimeout(() => {
-      // navigation.navigate('SignIn');
     }, 2000);
 
     return () => {

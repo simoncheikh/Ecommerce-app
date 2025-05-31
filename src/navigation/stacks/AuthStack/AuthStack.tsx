@@ -24,7 +24,7 @@ export const AuthStack = () => (
     <Stack.Screen
       name="Map"
       component={MapScreen}
-      options={{ animation: 'slide_from_bottom' }}
+      options={{ animation: 'slide_from_bottom', headerShown: false }}
     />
   </Stack.Navigator>
 );

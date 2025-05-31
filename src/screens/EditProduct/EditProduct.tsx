@@ -11,7 +11,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { launchImageLibrary } from "react-native-image-picker";
 import { PERMISSIONS, request, RESULTS } from "react-native-permissions";
 import { useForm } from "react-hook-form";
@@ -25,7 +25,6 @@ import { CameraVision } from "../../components/molecules/Camera/cameraVision";
 import { useAuthStore } from "../../store/sessionStore/AuthStore";
 import { styles } from "./EditProduct.styles";
 import { GoogleMaps } from "../../components/organisms/Maps/googleMaps";
-import { AddProductApi } from "../../api/products/addProduct/AddProductApi";
 import { GetProductApi } from "../../api/products/getProductById/GetProductApi";
 import { API_BASE_URL } from "../../constants/apiConfig";
 import { EditProductApi } from "../../api/products/editProduct/EditProductApi";
@@ -51,20 +50,19 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export const EditProduct = ({ navigation, route }: any) => {
-    const isCameraOpen = useCameraStore((state) => state.isCameraOpen)
-    const theme = useThemeStore((state) => state.theme)
+    const isCameraOpen = useCameraStore((state) => state.isCameraOpen);
     const setIsCameraOpen = useCameraStore((state) => state.setCameraOpen);
-    const { token } = useAuthStore();
-    // const [cameraOpen, setCameraOpen] = useState(false);
+    const theme = useThemeStore((state) => state.theme);
+    const token = useAuthStore((state) => state.token);
+
     const [imageIndex, setImageIndex] = useState<number | null>(null);
     const [showPhotoOptions, setShowPhotoOptions] = useState(false);
     const [photoActionIndex, setPhotoActionIndex] = useState<number | null>(null);
 
-    const isDarkMode = theme == 'dark'
-
-
-    const darkTheme = GlobalStyles.theme.darkTheme
-    const lightTheme = GlobalStyles.theme.lightTheme
+    const isLoggedIn = !!token;
+    const isDarkMode = useMemo(() => theme === 'dark', [theme]);
+    const darkTheme = useMemo(() => GlobalStyles.theme.darkTheme, []);
+    const lightTheme = useMemo(() => GlobalStyles.theme.lightTheme, []);
 
     const {
         control,
@@ -93,7 +91,7 @@ export const EditProduct = ({ navigation, route }: any) => {
     const selectedLongitude = route.params?.selectedLongitude;
     const productId = route.params?.productId;
 
-    const { data: productData, isLoading } = useQuery({
+    const { data: productData } = useQuery({
         queryKey: ["product", productId],
         queryFn: () => GetProductApi(token?.data?.accessToken, productId),
         enabled: !!token?.data?.accessToken && !!productId,
@@ -123,7 +121,6 @@ export const EditProduct = ({ navigation, route }: any) => {
         }
     }, [productData, reset, selectedLatitude, selectedLongitude]);
 
-
     useEffect(() => {
         if (selectedLatitude && selectedLongitude) {
             setValue(
@@ -150,31 +147,32 @@ export const EditProduct = ({ navigation, route }: any) => {
         return () => backHandler.remove();
     }, [isCameraOpen]);
 
-    const handlePhotoTaken = (uri: string) => {
+    const handlePhotoTaken = useCallback((uri: string) => {
         const currentImages = getValues("images");
         const newImages =
             imageIndex !== null
                 ? [...currentImages.slice(0, imageIndex), uri, ...currentImages.slice(imageIndex + 1)]
-                : [...currentImages, uri];
+                : [...currentImages, uri]; 
 
         setValue("images", newImages, { shouldValidate: true });
         setIsCameraOpen(false);
-    };
+        setImageIndex(null);
+    }, [getValues, imageIndex, setIsCameraOpen, setValue]);
 
-    const handleRemovePhoto = (index: number) => {
+    const handleRemovePhoto = useCallback((index: number) => {
         const currentImages = getValues("images");
         const updated = currentImages.filter((_, i) => i !== index);
         setValue("images", updated, { shouldValidate: true });
-    };
+    }, [getValues, setValue]);
 
-    const handleNavigation = () => {
+    const handleNavigation = useCallback(() => {
         navigation.navigate("Map", {
             latitude: getValues("location").latitude || 33.5401,
             longitude: getValues("location").longitude || 33.8342,
-            formData: getValues(), 
+            formData: getValues(),
             source: "EditProduct"
         });
-    };
+    }, [getValues, navigation]);
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('focus', () => {
@@ -190,18 +188,18 @@ export const EditProduct = ({ navigation, route }: any) => {
         return unsubscribe;
     }, [navigation, route.params]);
 
-    const showPhotoSelection = (index: number | null = null) => {
+    const showPhotoSelection = useCallback((index: number | null = null) => {
         setPhotoActionIndex(index);
         setShowPhotoOptions(true);
-    };
+    }, []);
 
-    const handleTakePhoto = (index: number | null = null) => {
+    const handleTakePhoto = useCallback((index: number | null = null) => {
         setImageIndex(index);
         setIsCameraOpen(true);
         setShowPhotoOptions(false);
-    };
+    }, [setIsCameraOpen]);
 
-    const handleChooseFromLibrary = async (index: number | null = null) => {
+    const handleChooseFromLibrary = useCallback(async (index: number | null = null) => {
         setShowPhotoOptions(false);
 
         let permissionResult;
@@ -212,7 +210,7 @@ export const EditProduct = ({ navigation, route }: any) => {
         }
 
         if (permissionResult !== RESULTS.GRANTED) {
-            Alert.alert("Permission Denied", "You need to allow access to your photos.");
+            Alert.alert("Permission Denied", "You need to allow access to your photos");
             return;
         }
 
@@ -235,7 +233,8 @@ export const EditProduct = ({ navigation, route }: any) => {
                 : [...currentImages, uri];
 
         setValue("images", newImages, { shouldValidate: true });
-    };
+        setPhotoActionIndex(null);
+    }, [getValues, setValue]);
 
     const editProductMutation = useMutation({
         mutationFn: (data: any) => EditProductApi(data),
@@ -260,19 +259,26 @@ export const EditProduct = ({ navigation, route }: any) => {
             return;
         }
 
-        const mappedImages = data.images.map((uri) => {
-            const uriPath = uri.includes(API_BASE_URL)
-                ? uri.replace(API_BASE_URL, '')
-                : uri;
+        const imagesToSend = data.images.map((uri) => {
+            if (uri.includes(API_BASE_URL)) {
+                const existingImage = productData?.images?.find((img: any) =>
+                    `${API_BASE_URL}${img.url}` === uri
+                );
 
-            const existing = productData.images?.find((img: any) =>
-                img.url === uriPath || `${API_BASE_URL}${img.url}` === uri
-            );
+                if (existingImage) {
+                    return {
+                        _id: existingImage._id,
+                        url: existingImage.url
+                    };
+                }
+            }
 
-            return existing
-                ? { url: existing.url, _id: existing._id }
-                : { url: uri };
+            return {
+                url: uri
+            };
         });
+
+        console.log(imagesToSend)
 
         editProductMutation.mutate({
             id: productData._id,
@@ -284,10 +290,19 @@ export const EditProduct = ({ navigation, route }: any) => {
                 longitude: data.location.longitude,
                 latitude: data.location.latitude,
             },
-            images: mappedImages,
+            images: imagesToSend,
             accessToken: token.data.accessToken,
         });
     };
+
+    if (!isLoggedIn || !token?.data?.accessToken) {
+        return (
+            <SafeAreaView style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+                <Text style={{ color: "red", fontSize: 16 }}>You must be logged in to view products.</Text>
+            </SafeAreaView>
+        );
+    }
+
 
     return (
         <SafeAreaView

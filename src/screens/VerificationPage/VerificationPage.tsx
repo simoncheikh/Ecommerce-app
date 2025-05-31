@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import {
     SafeAreaView,
     View,
@@ -28,12 +28,11 @@ type CodeForm = z.infer<typeof codeSchema>;
 
 export const VerificationPage = ({ navigation, route }: any) => {
     const { login } = useAuthStore();
-    const theme = useThemeStore((state) => state.theme)
-    const isDarkMode = theme == 'dark'
+    const theme = useThemeStore((state) => state.theme);
+    const isDarkMode = theme === "dark";
 
-    const darkTheme = GlobalStyles.theme.darkTheme
-    const lightTheme = GlobalStyles.theme.lightTheme
-
+    const darkTheme = GlobalStyles.theme.darkTheme;
+    const lightTheme = GlobalStyles.theme.lightTheme;
 
     const { email } = route.params;
 
@@ -58,7 +57,6 @@ export const VerificationPage = ({ navigation, route }: any) => {
         return () => clearInterval(interval);
     }, [timer]);
 
-
     const verificationMutation = useMutation({
         mutationFn: (codeString: string) =>
             verificationApi({ email, otp: codeString }),
@@ -77,7 +75,6 @@ export const VerificationPage = ({ navigation, route }: any) => {
         },
     });
 
-
     const resendMutation = useMutation({
         mutationFn: () => resendVerificationApi(email),
         onSuccess: (res) => {
@@ -94,40 +91,41 @@ export const VerificationPage = ({ navigation, route }: any) => {
         },
     });
 
-    const onSubmit = (data: CodeForm) => {
+    const onSubmit = useCallback((data: CodeForm) => {
         const codeString = data.code.join("");
         verificationMutation.mutate(codeString);
-    };
+    }, [verificationMutation]);
 
-    const handleVerificationCode = () => {
+    const handleVerificationCode = useCallback(() => {
         resendMutation.mutate();
-    };
+    }, [resendMutation]);
 
+    const inputThemeStyles = useMemo(() => ({
+        color: isDarkMode ? darkTheme.color : lightTheme.color,
+        borderColor: isDarkMode ? darkTheme.color : lightTheme.color,
+    }), [isDarkMode]);
+
+    const containerBackground = useMemo(() => ({
+        backgroundColor: isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor,
+    }), [isDarkMode]);
+
+    const textColor = useMemo(() => ({
+        color: isDarkMode ? darkTheme.color : lightTheme.color,
+    }), [isDarkMode]);
+
+    const resendLinkColor = useMemo(() => ({
+        color: isDarkMode ? "#66b2ff" : "#0066cc",
+    }), [isDarkMode]);
 
     return (
-        <SafeAreaView
-            style={[
-                styles.container,
-                { backgroundColor: isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor },
-            ]}
-        >
+        <SafeAreaView style={[styles.container, containerBackground]}>
             <Image source={require("../../assets/store.png")} />
 
             <View style={styles.titleContainer}>
-                <Text
-                    style={[
-                        styles.title,
-                        { color: isDarkMode ? darkTheme.color : lightTheme.color },
-                    ]}
-                >
+                <Text style={[styles.title, textColor]}>
                     Verification Code
                 </Text>
-                <Text
-                    style={[
-                        styles.subtitle,
-                        { color: isDarkMode ? darkTheme.color : lightTheme.color },
-                    ]}
-                >
+                <Text style={[styles.subtitle, textColor]}>
                     Enter the code sent to your email
                 </Text>
             </View>
@@ -142,13 +140,7 @@ export const VerificationPage = ({ navigation, route }: any) => {
                             render={({ field: { onChange, value } }) => (
                                 <TextInput
                                     ref={(ref) => (inputs.current[index] = ref)}
-                                    style={[
-                                        styles.input,
-                                        {
-                                            color: isDarkMode ? darkTheme.color : lightTheme.color,
-                                            borderColor: isDarkMode ? darkTheme.color : lightTheme.color,
-                                        },
-                                    ]}
+                                    style={[styles.input, inputThemeStyles]}
                                     keyboardType="number-pad"
                                     maxLength={1}
                                     value={value}
@@ -197,32 +189,16 @@ export const VerificationPage = ({ navigation, route }: any) => {
 
             <View style={styles.resendContainer}>
                 {timer > 0 ? (
-                    <Text
-                        style={[
-                            styles.timerText,
-                            { color: isDarkMode ? darkTheme.color : lightTheme.color },
-                        ]}
-                    >
+                    <Text style={[styles.timerText, textColor]}>
                         Resend code in {timer}s
                     </Text>
                 ) : (
                     <View style={styles.resendSmallContainer}>
-                        <Text
-                            style={[
-                                styles.resendText,
-                                { color: isDarkMode ? darkTheme.color : lightTheme.color },
-                            ]}
-                        >
+                        <Text style={[styles.resendText, textColor]}>
                             Didn't receive code?{" "}
                         </Text>
-
                         <TouchableOpacity onPress={handleVerificationCode}>
-                            <Text
-                                style={[
-                                    styles.resendLink,
-                                    { color: isDarkMode ? "#66b2ff" : "#0066cc" },
-                                ]}
-                            >
+                            <Text style={[styles.resendLink, resendLinkColor]}>
                                 Send code
                             </Text>
                         </TouchableOpacity>
@@ -230,6 +206,5 @@ export const VerificationPage = ({ navigation, route }: any) => {
                 )}
             </View>
         </SafeAreaView>
-
     );
 };

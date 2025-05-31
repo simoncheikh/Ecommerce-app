@@ -4,13 +4,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Textfield } from "../../components/atoms/Textfield/Textfield";
 import { Button } from "../../components/atoms/Button/Button";
-import { LoginButton } from "../../components/atoms/LoginButton/LoginButton";
 import { styles } from "./SignIn.styles";
 import { useAuthStore } from "../../store/sessionStore/AuthStore";
 import { GlobalStyles } from "../../styles/GobalStyles";
 import { useThemeStore } from "../../store/themeStore/ThemeStore";
 import { LoginApi } from '../../api/users/login/LoginApi';
 import { useMutation } from "@tanstack/react-query";
+import { useCallback } from "react";
 
 const schema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -31,6 +31,9 @@ export const SignIn = ({ navigation }: any) => {
     mode: "onChange",
   });
 
+  const theme = useThemeStore((state) => state.theme);
+  const isDark = theme === 'dark';
+  const themeStyles = isDark ? GlobalStyles.theme.darkTheme : GlobalStyles.theme.lightTheme;
 
   const loginMutation = useMutation({
     mutationFn: (data: FormData) =>
@@ -47,16 +50,19 @@ export const SignIn = ({ navigation }: any) => {
     },
   });
 
+  const handleLogin = useCallback((data: FormData) => {
+    loginMutation.mutate(data);
+  }, [loginMutation]);
 
+  const handleSignUpNavigation = useCallback(() => {
+    navigation.navigate("SignUp");
+  }, [navigation]);
 
-  const theme = useThemeStore((state) => state.theme);
-
-  const isDark = theme === 'dark';
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? GlobalStyles.theme.darkTheme.backgroundColor : GlobalStyles.theme.lightTheme.backgroundColor }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeStyles.backgroundColor }]}>
       <View style={styles.innerContainer}>
         <View style={styles.titleContainer}>
-          <Text style={[styles.titleLabel, { color: isDark ? GlobalStyles.theme.darkTheme.color : GlobalStyles.theme.lightTheme.color }]}>Welcome Back!</Text>
+          <Text style={[styles.titleLabel, { color: themeStyles.color }]}>Welcome Back!</Text>
           <Text style={styles.descLabel}>Sign in to your account.</Text>
         </View>
         <View style={styles.fieldsContainer}>
@@ -82,15 +88,15 @@ export const SignIn = ({ navigation }: any) => {
           </View>
         </View>
         <Button
-          onClick={handleSubmit((data) => loginMutation.mutate(data))}
+          onClick={handleSubmit(handleLogin)}
           label={loginMutation.isPending ? "Trying to logging in" : "SIGN IN"}
           disabled={!isValid || loginMutation.isPending}
           variant="primary"
         />
       </View>
       <View style={styles.haveAnAccStyles}>
-        <Text style={{ color: isDark ? GlobalStyles.theme.darkTheme.color : GlobalStyles.theme.lightTheme.color }}>You Don't Have An Account? </Text>
-        <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
+        <Text style={{ color: themeStyles.color }}>You Don't Have An Account? </Text>
+        <TouchableOpacity onPress={handleSignUpNavigation}>
           <Text style={styles.loginStyle}>Sign Up</Text>
         </TouchableOpacity>
       </View>

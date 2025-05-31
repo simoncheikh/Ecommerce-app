@@ -58,7 +58,7 @@ export const EditProductApi = async ({
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
-            const errorMessage = error.response?.data?.message || "Failed to add product";
+            const errorMessage = error.response?.data?.message || "Failed to edit product";
             console.error("API Error:", {
                 message: errorMessage,
                 status: error.response?.status,

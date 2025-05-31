@@ -7,6 +7,7 @@ import {
     ScrollView,
     Alert,
     Pressable,
+    Share,
 } from "react-native";
 import { styles } from "./ProductDetails.styles";
 import { useCallback, useEffect, useState } from "react";
@@ -22,14 +23,16 @@ import { GetProfileApi } from "../../api/users/profile/getprofile/GetProfileApi"
 import { retry } from "../../utils/retry";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { DeleteProductApi } from "../../api/products/deleteProduct/DeleteProductApi";
-import { Button } from "../../components/atoms/Button/Button";
 import { useFocusEffect } from "@react-navigation/native";
 import { saveImageToGallery } from "../../utils/SaveImageToGallery";
 import { useCartStore } from "../../store/cartStore/cartStore";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import { ProductImage } from "../../components/organisms/ProductImages/ProductImage";
 
 export const ProductDetails = ({ route, navigation }: any) => {
-    const { token } = useAuthStore();
     const theme = useThemeStore((state) => state.theme);
+    const token = useAuthStore((state) => state.token);
+    const isLoggedIn = !!token;
     const isDark = theme === "dark";
     const [quantity, setQuantity] = useState(1);
 
@@ -44,7 +47,7 @@ export const ProductDetails = ({ route, navigation }: any) => {
             if (!token?.data?.accessToken) {
                 return Promise.reject(new Error("No access token"));
             }
-            return GetProductApi(token.data.accessToken, route.params.productId);
+            return retry(() => GetProductApi(token.data.accessToken, route.params.productId));
         },
         enabled: !!token?.data?.accessToken && !!route.params.productId,
         retry: 3,
@@ -55,7 +58,6 @@ export const ProductDetails = ({ route, navigation }: any) => {
     const {
         data: userData,
         isLoading: userLoading,
-        error: userError,
     } = useQuery({
         queryKey: ["profile"],
         queryFn: () => {
@@ -69,6 +71,16 @@ export const ProductDetails = ({ route, navigation }: any) => {
         refetchOnReconnect: true,
     });
 
+    useEffect(() => {
+        if (!route.params?.productId) {
+            const productId = navigation.getParam('productId');
+            if (productId) {
+                navigation.setParams({ productId });
+            } else {
+                navigation.goBack();
+            }
+        }
+    }, [route.params?.productId]);
 
     useFocusEffect(
         useCallback(() => {
@@ -76,10 +88,18 @@ export const ProductDetails = ({ route, navigation }: any) => {
         }, [refetchProduct, token?.data?.accessToken])
     );
 
-    const increaseQuantity = () => setQuantity((prev) => prev + 1);
-    const decreaseQuantity = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+    const increaseQuantity = useCallback(() => {
+        setQuantity((prev) => prev + 1);
+    }, []);
 
-    const isOwner = userData?.data?.user?.id && productData?.user?._id && userData.data?.user?.id === productData.user._id;
+    const decreaseQuantity = useCallback(() => {
+        setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+    }, []);
+
+    const isOwner =
+        userData?.data?.user?.id &&
+        productData?.user?._id &&
+        userData.data?.user?.id === productData.user._id;
 
     const deleteProductMutation = useMutation({
         mutationFn: ({ id, accessToken }: { id: string; accessToken: string }) =>
@@ -97,7 +117,7 @@ export const ProductDetails = ({ route, navigation }: any) => {
         },
     });
 
-    const handleDeleteProduct = () => {
+    const handleDeleteProduct = useCallback(() => {
         if (!token?.data?.accessToken) {
             Alert.alert("Error", "You need to be logged in");
             return;
@@ -110,27 +130,9 @@ export const ProductDetails = ({ route, navigation }: any) => {
             id: productData._id,
             accessToken: token.data.accessToken,
         });
-    };
+    }, [deleteProductMutation, productData, token]);
 
-    if (productLoading || userLoading) {
-        return (
-            <SafeAreaView style={[styles.container, { backgroundColor: isDark ? GlobalStyles.theme.darkTheme.backgroundColor : GlobalStyles.theme.lightTheme.backgroundColor }]}>
-                <Text style={{ color: isDark ? GlobalStyles.theme.darkTheme.color : GlobalStyles.theme.lightTheme.color, textAlign: "center", marginTop: 20 }}>
-                    Loading product details...
-                </Text>
-            </SafeAreaView>
-        );
-    }
-
-    if (!productError) {
-        <SafeAreaView style={[styles.container, { backgroundColor: isDark ? GlobalStyles.theme.darkTheme.backgroundColor : GlobalStyles.theme.lightTheme.backgroundColor }]}>
-            <Text style={{ color: isDark ? GlobalStyles.theme.darkTheme.color : GlobalStyles.theme.lightTheme.color, textAlign: "center", marginTop: 20 }}>
-                No Product to Show
-            </Text>
-        </SafeAreaView>
-    }
-
-    const addToCart = () => {
+    const addToCart = useCallback(() => {
         if (!productData) return;
 
         useCartStore.getState().addToCart({
@@ -142,8 +144,53 @@ export const ProductDetails = ({ route, navigation }: any) => {
         });
 
         Alert.alert("Added to Cart", `${quantity} item(s) added to your cart.`);
-        setQuantity(1)
-    };
+        setQuantity(1);
+    }, [productData, quantity]);
+
+    const handleShare = useCallback(async () => {
+        if (!productData?._id) {
+            Alert.alert("Error", "Product ID is missing.");
+            return;
+        }
+
+        const deepLink = `http://myappsimonecommerce.com/product/${productData._id}`;
+
+        try {
+            await Share.share({
+                message: `Check out this product: ${productData.title}\n${deepLink}`,
+            });
+        } catch (error) {
+            Alert.alert("Error", "Failed to share the product.");
+        }
+    }, [productData]);
+
+    if (productLoading || userLoading) {
+        return (
+            <SafeAreaView style={[styles.container, { backgroundColor: isDark ? GlobalStyles.theme.darkTheme.backgroundColor : GlobalStyles.theme.lightTheme.backgroundColor }]}>
+                <Text style={{ color: isDark ? GlobalStyles.theme.darkTheme.color : GlobalStyles.theme.lightTheme.color, textAlign: "center", marginTop: 20 }}>
+                    Loading product details...
+                </Text>
+            </SafeAreaView>
+        );
+    }
+
+    if (!productData || productError) {
+        return (
+            <SafeAreaView style={[styles.container, { backgroundColor: isDark ? GlobalStyles.theme.darkTheme.backgroundColor : GlobalStyles.theme.lightTheme.backgroundColor }]}>
+                <Text style={{ color: isDark ? GlobalStyles.theme.darkTheme.color : GlobalStyles.theme.lightTheme.color, textAlign: "center", marginTop: 20 }}>
+                    No Product to Show
+                </Text>
+            </SafeAreaView>
+        );
+    }
+
+    if (!isLoggedIn || !token?.data?.accessToken) {
+        return (
+            <SafeAreaView style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+                <Text style={{ color: "red", fontSize: 16 }}>You must be logged in to view products.</Text>
+            </SafeAreaView>
+        );
+    }
 
     return (
         <SafeAreaView
@@ -171,7 +218,7 @@ export const ProductDetails = ({ route, navigation }: any) => {
                         </TouchableOpacity>
                     </View>
                 )}
-                <View style={[styles.content]}>
+                <View style={styles.content}>
                     {(productData?.images?.length ?? 0) > 0 && (
                         <Swiper
                             style={styles.imageSwiper}
@@ -181,41 +228,17 @@ export const ProductDetails = ({ route, navigation }: any) => {
                             loop={false}
                         >
                             {productData?.images.map((img, index) => (
-                                <Pressable onLongPress={() => saveImageToGallery(`${API_BASE_URL}${img.url}`)}>
-                                    <Image
-                                        key={index}
-                                        source={{ uri: `${API_BASE_URL}${img.url}` }}
-                                        style={styles.image}
-                                        resizeMode="contain"
-                                    />
-                                </Pressable>
+                                <ProductImage key={index} url={img.url} />
                             ))}
+
                         </Swiper>
                     )}
 
-                    <Text
-                        style={[
-                            styles.title,
-                            {
-                                color: isDark
-                                    ? GlobalStyles.theme.darkTheme.color
-                                    : GlobalStyles.theme.lightTheme.color,
-                            },
-                        ]}
-                    >
+                    <Text style={[styles.title, { color: isDark ? GlobalStyles.theme.darkTheme.color : GlobalStyles.theme.lightTheme.color }]}>
                         {productData?.title}
                     </Text>
                     <Text style={styles.description}>{productData?.description}</Text>
-                    <Text
-                        style={[
-                            styles.price,
-                            {
-                                color: isDark
-                                    ? GlobalStyles.theme.darkTheme.color
-                                    : GlobalStyles.theme.lightTheme.color,
-                            },
-                        ]}
-                    >
+                    <Text style={[styles.price, { color: isDark ? GlobalStyles.theme.darkTheme.color : GlobalStyles.theme.lightTheme.color }]}>
                         ${productData?.price?.toFixed(2)}
                     </Text>
                     <Text style={styles.stock}>In Stock</Text>
@@ -224,16 +247,7 @@ export const ProductDetails = ({ route, navigation }: any) => {
                         <TouchableOpacity style={styles.qtyButton} onPress={decreaseQuantity}>
                             <Text style={styles.qtyText}>−</Text>
                         </TouchableOpacity>
-                        <Text
-                            style={[
-                                styles.qtyCount,
-                                {
-                                    color: isDark
-                                        ? GlobalStyles.theme.darkTheme.color
-                                        : GlobalStyles.theme.lightTheme.color,
-                                },
-                            ]}
-                        >
+                        <Text style={[styles.qtyCount, { color: isDark ? GlobalStyles.theme.darkTheme.color : GlobalStyles.theme.lightTheme.color }]}>
                             {quantity}
                         </Text>
                         <TouchableOpacity style={styles.qtyButton} onPress={increaseQuantity}>
@@ -244,8 +258,8 @@ export const ProductDetails = ({ route, navigation }: any) => {
                     <View style={styles.mapContainer}>
                         {productData?.location && (
                             <GoogleMaps
-                                latitude={productData?.location?.latitude}
-                                longitude={productData?.location?.longitude}
+                                latitude={productData.location.latitude}
+                                longitude={productData.location.longitude}
                             />
                         )}
                     </View>
@@ -258,7 +272,7 @@ export const ProductDetails = ({ route, navigation }: any) => {
                             />
                             <Text style={styles.cartText}>Add {quantity} to Cart</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.iconButton}>
+                        <TouchableOpacity style={styles.iconButton} onPress={handleShare}>
                             <Image
                                 source={require("../../assets/share.png")}
                                 style={styles.iconImage}

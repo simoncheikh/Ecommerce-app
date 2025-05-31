@@ -96,7 +96,7 @@ export const CameraVision = ({
     };
 
     return (
-        <View style={StyleSheet.absoluteFill}>
+        <View style={StyleSheet.absoluteFill} testID="mock-camera">
             <Camera
                 ref={camera}
                 style={StyleSheet.absoluteFill}
@@ -106,6 +106,7 @@ export const CameraVision = ({
                 pixelFormat="yuv"
                 onInitialized={() => setIsCameraInitialized(true)}
                 onError={(error) => console.error("Camera error:", error)}
+                testID="mock-camera"
             />
             <View style={captureButtonStyle}>
                 <Pressable

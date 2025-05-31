@@ -26,6 +26,7 @@ export const NavBar = ({ }) => {
           source={require("../../../assets/logo.png")}
           style={styles.logo}
           resizeMode="contain"
+          testID="logo-image"
         />
         <View style={styles.searchFieldWrapper}>
           <SearchField

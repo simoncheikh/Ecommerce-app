@@ -3,6 +3,7 @@ export type ProductCardProps = {
     source?: any,
     title?: string,
     cardWidth?: number,
-    price:number,
-    onPress: () => void
+    price: number,
+    onPress: () => void,
+    loading: boolean
 }

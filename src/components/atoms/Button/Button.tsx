@@ -15,7 +15,7 @@ export const Button = ({ onClick, label, disabled, variant }: ButtonProps) => {
 
 
     return (
-        <TouchableOpacity style={[styles.signUpBtn, { backgroundColor: getBackgroundColor() }]} onPress={onClick} disabled={disabled}>
+        <TouchableOpacity style={[styles.signUpBtn, { backgroundColor: getBackgroundColor() }]} onPress={onClick} disabled={disabled} testID="button">
             <Text style={[styles.btnLabel, { color: variant == "primary" ? "white" : disabled == true ? "white" : "#e99e5b" }]}>{label}</Text>
         </TouchableOpacity >
     )

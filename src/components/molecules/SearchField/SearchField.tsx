@@ -53,7 +53,7 @@ export const SearchField: React.FC<SearchFieldProps> = ({
         {...props}
       />
       {value?.length > 0 && (
-        <Pressable onPress={onClear} style={styles.clearButton}>
+        <Pressable onPress={onClear} style={styles.clearButton} testID='clear-button'>
           <Image
             source={require('../../../assets/close.png')}
             style={[styles.clearIcon, { tintColor: isDark ? '#fff' : '#000' }]}
