@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   FlatList,
-  SafeAreaView,
   Text,
   View,
   Dimensions,
@@ -20,7 +19,8 @@ import { styles } from "./HomePage.styles";
 import { GlobalStyles } from "../../styles/GobalStyles";
 import { useQueryClient } from "@tanstack/react-query";
 import { NavBar } from "../../components/organisms/NavBar/NavBar";
-import { API_BASE_URL } from "../../constants/apiConfig";
+import Config from "react-native-config";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -210,7 +210,7 @@ export const HomePage = ({ navigation, route }: any) => {
             <ProductCard
               title={item?.title}
               price={item?.price}
-              source={item ? { uri: `${API_BASE_URL}${item?.images?.[0]?.url ?? ""}` } : undefined}
+              source={item ? { uri: `${Config.REACT_APP_API_URL}${item?.images?.[0]?.url ?? ""}` } : undefined}
               cardWidth={screenWidth - 50}
               onPress={() => item && handleProductPress(item._id)}
               loading={!item}

@@ -1,4 +1,4 @@
-import { SafeAreaView, Text, View, TouchableOpacity, Alert } from "react-native";
+import { Text, View, TouchableOpacity, Alert } from "react-native";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -11,6 +11,8 @@ import { useThemeStore } from "../../store/themeStore/ThemeStore";
 import { LoginApi } from '../../api/users/login/LoginApi';
 import { useMutation } from "@tanstack/react-query";
 import { useCallback } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 const schema = z.object({
   email: z.string().email({ message: "Invalid email address" }),

@@ -1,6 +1,6 @@
 import axios from "axios"
-import { API_BASE_URL } from "../../../constants/apiConfig"
 import { SearchProductApiProps } from "./SearchProductApi.type"
+import Config from "react-native-config";
 
 export const SearchProductApi = async ({
     name,
@@ -9,7 +9,7 @@ export const SearchProductApi = async ({
     name: string;
     accessToken: string;
 }) => {
-    const res = await axios.get(`${API_BASE_URL}/api/products/search?query=${name}`, {
+    const res = await axios.get(`${Config.REACT_APP_API_URL}/api/products/search?query=${name}`, {
         headers: {
             Authorization: `Bearer ${accessToken}`,
         },

@@ -1,35 +1,35 @@
-import notifee, { AndroidImportance, EventType } from '@notifee/react-native';
-import { NavigationContainerRef } from '@react-navigation/native';
-import React, { useEffect } from 'react';
+import { createNavigationContainerRef } from '@react-navigation/native';
+import axios from 'axios';
 
-export async function sendNewProductNotification(productId: string, title: string) {
-  await notifee.requestPermission();
+export const navigationRef = createNavigationContainerRef();
 
-  await notifee.createChannel({
-    id: 'default',
-    name: 'Default Channel',
-    importance: AndroidImportance.HIGH,
-  });
-
-  await notifee.displayNotification({
-    title: 'New Product Added!',
-    body: title,
-    android: {
-      channelId: 'default',
-      pressAction: {
-        id: 'default',
+export const sendPushNotification = async (productId: string, title: string) => {
+  try {
+    const response = await axios.post(
+      'https://onesignal.com/api/v1/notifications',
+      {
+        app_id: '0d9d7f69-5888-4518-8266-96839a7632d5',
+        included_segments: ['All'],
+        headings: { en: 'New Product Added!' },
+        contents: { en: title },
+        data: { productId },
       },
-    },
-    data: {
-      productId, 
-    },
-  });
-}
+      {
+        headers: {
+          Authorization: 'os_v2_app_bwox62kyrbcrratgs2bzu5rs2udo5l5yw6zuuwmp3p5dwfkxyuhnioe2oudwdrsv2cgafeykekgje5xsfrdeso7lfjc7escngtd3i7q', // <- replace with your actual OneSignal REST API key
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
-export const navigationRef = React.createRef<NavigationContainerRef<any>>();
+    console.log('Notification sent', response.data);
+  } catch (error) {
+    console.error('Failed to send notification', error);
+  }
+};
 
 export function navigate(name: string, params?: any) {
-  navigationRef.current?.navigate(name, params);
+  if (navigationRef.isReady()) {
+    navigationRef.navigate(name as never, params as never);
+  }
 }
-
-

@@ -1,5 +1,4 @@
 import {
-    SafeAreaView,
     View,
     Text,
     Image,
@@ -16,7 +15,7 @@ import { useThemeStore } from "../../store/themeStore/ThemeStore";
 import { GlobalStyles } from "../../styles/GobalStyles";
 import { useAuthStore } from "../../store/sessionStore/AuthStore";
 import { GetProductApi } from "../../api/products/getProductById/GetProductApi";
-import { API_BASE_URL } from "../../constants/apiConfig";
+import Config from "react-native-config";
 import { GoogleMaps } from "../../components/organisms/Maps/googleMaps";
 import Swiper from "react-native-swiper";
 import { GetProfileApi } from "../../api/users/profile/getprofile/GetProfileApi";
@@ -28,6 +27,9 @@ import { saveImageToGallery } from "../../utils/SaveImageToGallery";
 import { useCartStore } from "../../store/cartStore/cartStore";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { ProductImage } from "../../components/organisms/ProductImages/ProductImage";
+import SkeletonPlaceholder from "react-native-skeleton-placeholder";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 export const ProductDetails = ({ route, navigation }: any) => {
     const theme = useThemeStore((state) => state.theme);
@@ -35,6 +37,8 @@ export const ProductDetails = ({ route, navigation }: any) => {
     const isLoggedIn = !!token;
     const isDark = theme === "dark";
     const [quantity, setQuantity] = useState(1);
+
+    const productId = route.params?.productId;
 
     const {
         data: productData,
@@ -72,15 +76,10 @@ export const ProductDetails = ({ route, navigation }: any) => {
     });
 
     useEffect(() => {
-        if (!route.params?.productId) {
-            const productId = navigation.getParam('productId');
-            if (productId) {
-                navigation.setParams({ productId });
-            } else {
-                navigation.goBack();
-            }
+        if (!productId) {
+            navigation.goBack();
         }
-    }, [route.params?.productId]);
+    }, [productId]);
 
     useFocusEffect(
         useCallback(() => {
@@ -140,7 +139,7 @@ export const ProductDetails = ({ route, navigation }: any) => {
             title: productData.title,
             price: productData.price,
             quantity,
-            image: `${API_BASE_URL}${productData?.images?.[0]?.url ?? ""}`,
+            image: `${Config.REACT_APP_API_URL}${productData?.images?.[0]?.url ?? ""}`,
         });
 
         Alert.alert("Added to Cart", `${quantity} item(s) added to your cart.`);
@@ -164,16 +163,22 @@ export const ProductDetails = ({ route, navigation }: any) => {
         }
     }, [productData]);
 
-    if (productLoading || userLoading) {
+
+    if (productLoading) {
         return (
-            <SafeAreaView style={[styles.container, { backgroundColor: isDark ? GlobalStyles.theme.darkTheme.backgroundColor : GlobalStyles.theme.lightTheme.backgroundColor }]}>
-                <Text style={{ color: isDark ? GlobalStyles.theme.darkTheme.color : GlobalStyles.theme.lightTheme.color, textAlign: "center", marginTop: 20 }}>
-                    Loading product details...
-                </Text>
+            <SafeAreaView style={[styles.container, { width: '100%', paddingTop: "10%", borderWidth: 1, elevation: 0 }]}>
+                <SkeletonPlaceholder>
+                    <SkeletonPlaceholder.Item flexDirection="column" alignItems="center" padding={10} gap={10} width={"100%"}>
+                        <SkeletonPlaceholder.Item width={300} height={100} borderRadius={5} />
+                        <SkeletonPlaceholder.Item marginLeft={20} width={300}>
+                            <SkeletonPlaceholder.Item width={280} height={20} />
+                            <SkeletonPlaceholder.Item marginTop={6} width={280} height={20} />
+                        </SkeletonPlaceholder.Item>
+                    </SkeletonPlaceholder.Item>
+                </SkeletonPlaceholder>
             </SafeAreaView>
         );
     }
-
     if (!productData || productError) {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: isDark ? GlobalStyles.theme.darkTheme.backgroundColor : GlobalStyles.theme.lightTheme.backgroundColor }]}>
@@ -191,6 +196,7 @@ export const ProductDetails = ({ route, navigation }: any) => {
             </SafeAreaView>
         );
     }
+
 
     return (
         <SafeAreaView

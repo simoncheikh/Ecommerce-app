@@ -1,12 +1,12 @@
 import axios from "axios";
 import { VerificationApiProps } from "./verificationApi.type";
-import { API_BASE_URL } from "../../../constants/apiConfig";
+import Config from "react-native-config";
 
 
 
 export const verificationApi = async ({ email, otp }: VerificationApiProps) => {
     try {
-        const response = await axios.post(`${API_BASE_URL}/api/auth/verify-otp`,
+        const response = await axios.post(`${Config.REACT_APP_API_URL}/api/auth/verify-otp`,
             {
                 email: email,
                 otp: otp

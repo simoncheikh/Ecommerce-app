@@ -5,7 +5,6 @@ import {
     Modal,
     Platform,
     Pressable,
-    SafeAreaView,
     ScrollView,
     Text,
     TouchableOpacity,
@@ -18,7 +17,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-
+import RNFS from 'react-native-fs';
 import { Button } from "../../components/atoms/Button/Button";
 import { Textfield } from "../../components/atoms/Textfield/Textfield";
 import { CameraVision } from "../../components/molecules/Camera/cameraVision";
@@ -26,11 +25,13 @@ import { useAuthStore } from "../../store/sessionStore/AuthStore";
 import { styles } from "./EditProduct.styles";
 import { GoogleMaps } from "../../components/organisms/Maps/googleMaps";
 import { GetProductApi } from "../../api/products/getProductById/GetProductApi";
-import { API_BASE_URL } from "../../constants/apiConfig";
+import Config from "react-native-config";
 import { EditProductApi } from "../../api/products/editProduct/EditProductApi";
 import { useCameraStore } from "../../store/cameraStore/CameraStore";
 import { GlobalStyles } from "../../styles/GobalStyles";
 import { useThemeStore } from "../../store/themeStore/ThemeStore";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 const schema = z.object({
     title: z.string().min(2, { message: "Title must be at least 2 characters long" }),
@@ -110,7 +111,7 @@ export const EditProduct = ({ navigation, route }: any) => {
                     title: productData.title || "",
                     description: productData.description || "",
                     price: productData.price?.toString() || "",
-                    images: productData.images?.map((img: any) => `${API_BASE_URL}${img.url}`) || [],
+                    images: productData.images?.map((img: any) => `${Config.REACT_APP_API_URL}${img.url}`) || [],
                     location: {
                         name: productData.location?.name || currentFormValues.location.name,
                         latitude: productData.location?.latitude || currentFormValues.location.latitude,
@@ -149,11 +150,15 @@ export const EditProduct = ({ navigation, route }: any) => {
 
     const handlePhotoTaken = useCallback((uri: string) => {
         const currentImages = getValues("images");
-        const newImages =
-            imageIndex !== null
-                ? [...currentImages.slice(0, imageIndex), uri, ...currentImages.slice(imageIndex + 1)]
-                : [...currentImages, uri]; 
+        const newImages = [...currentImages];
 
+        if (imageIndex !== null) {
+            newImages[imageIndex] = uri;
+        } else {
+            if (newImages.length < 2) {
+                newImages.push(uri);
+            }
+        }
         setValue("images", newImages, { shouldValidate: true });
         setIsCameraOpen(false);
         setImageIndex(null);
@@ -227,10 +232,15 @@ export const EditProduct = ({ navigation, route }: any) => {
         if (!uri) return;
 
         const currentImages = getValues("images");
-        const newImages =
-            index !== null
-                ? [...currentImages.slice(0, index), uri, ...currentImages.slice(index + 1)]
-                : [...currentImages, uri];
+        const newImages = [...currentImages];
+
+        if (index !== null) {
+            newImages[index] = uri;
+        } else {
+            if (newImages.length < 2) {
+                newImages.push(uri);
+            }
+        }
 
         setValue("images", newImages, { shouldValidate: true });
         setPhotoActionIndex(null);
@@ -248,7 +258,23 @@ export const EditProduct = ({ navigation, route }: any) => {
         },
     });
 
-    const handleEditProduct = (data: FormData) => {
+    async function downloadImageToLocal(httpsUrl: string): Promise<string> {
+        const fileName = httpsUrl.split('/').pop() || `downloaded_${Date.now()}.jpg`;
+        const localPath = `${RNFS.CachesDirectoryPath}/${fileName}`;
+
+        const response = await fetch(httpsUrl);
+        const blob = await response.blob();
+        const base64Data = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(blob);
+            reader.onloadend = () => resolve(reader.result as string);
+        });
+
+        await RNFS.writeFile(localPath, base64Data.split(',')[1], 'base64');
+        return `file://${localPath}`;
+    }
+
+    const handleEditProduct = async (data: FormData) => {
         if (!token?.data?.accessToken) {
             Alert.alert("Error", "You need to be logged in");
             return;
@@ -259,42 +285,45 @@ export const EditProduct = ({ navigation, route }: any) => {
             return;
         }
 
-        const imagesToSend = data.images.map((uri) => {
-            if (uri.includes(API_BASE_URL)) {
-                const existingImage = productData?.images?.find((img: any) =>
-                    `${API_BASE_URL}${img.url}` === uri
-                );
+        try {
+            const processedImages = await Promise.all(
+                data.images.map(async (uri) => {
+                    if (uri.startsWith('http')) {
+                        const localUri = await downloadImageToLocal(uri);
+                        return { url: localUri, _id: "" }; 
+                    } else if (uri.startsWith('file:')) {
+                        return { url: uri, _id: "" };
+                    } else if (uri.startsWith(Config.REACT_APP_API_URL)) {
+                        const existingImage = productData?.images?.find(
+                            img => `${Config.REACT_APP_API_URL}${img.url}` === uri
+                        );
+                        return existingImage
+                            ? { _id: existingImage._id, url: existingImage.url }
+                            : { url: uri, _id: "" };
+                    }
+                    return { url: uri, _id: "" }; 
+                })
+            );
 
-                if (existingImage) {
-                    return {
-                        _id: existingImage._id,
-                        url: existingImage.url
-                    };
-                }
-            }
+            editProductMutation.mutate({
+                id: productData._id,
+                title: data.title,
+                description: data.description,
+                price: Number(data.price),
+                location: {
+                    name: data.location.name,
+                    longitude: data.location.longitude,
+                    latitude: data.location.latitude,
+                },
+                images: processedImages, 
+                accessToken: token.data.accessToken,
+            });
 
-            return {
-                url: uri
-            };
-        });
-
-        console.log(imagesToSend)
-
-        editProductMutation.mutate({
-            id: productData._id,
-            title: data.title,
-            description: data.description,
-            price: Number(data.price),
-            location: {
-                name: data.location.name,
-                longitude: data.location.longitude,
-                latitude: data.location.latitude,
-            },
-            images: imagesToSend,
-            accessToken: token.data.accessToken,
-        });
+        } catch (error) {
+            console.error("Error processing images:", error);
+            Alert.alert("Error", "Failed to process images");
+        }
     };
-
     if (!isLoggedIn || !token?.data?.accessToken) {
         return (
             <SafeAreaView style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
@@ -344,7 +373,7 @@ export const EditProduct = ({ navigation, route }: any) => {
                         <Text style={[styles.label, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>
                             Price
                         </Text>
-                        <Textfield control={control} name="price" placeholder="Enter Price" />
+                        <Textfield control={control} name="price" placeholder="Enter Price" type="numeric"/>
                         {errors.price && (
                             <Text style={[styles.error, { color: 'red' }]}>{errors.price.message}</Text>
                         )}

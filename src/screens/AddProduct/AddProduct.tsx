@@ -1,4 +1,4 @@
-import { Alert, BackHandler, Image, Modal, Platform, Pressable, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Alert, BackHandler, Image, Modal, Platform, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { launchImageLibrary } from "react-native-image-picker";
 import { PERMISSIONS, request, RESULTS } from "react-native-permissions";
 import { useCallback, useEffect, useState, useMemo } from "react";
@@ -16,7 +16,8 @@ import { AddProductApi } from "../../api/products/addProduct/AddProductApi";
 import { useMutation } from "@tanstack/react-query";
 import { useCameraStore } from "../../store/cameraStore/CameraStore";
 import { useThemeStore } from "../../store/themeStore/ThemeStore";
-import { sendNewProductNotification } from "../../utils/PushNotification";
+import {sendPushNotification } from "../../utils/PushNotification";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const schema = z.object({
     title: z.string().min(2, { message: "Title must be at least 2 characters long" }),
@@ -178,7 +179,7 @@ export const AddProduct = ({ navigation, route }: any) => {
         mutationFn: AddProductApi,
         onSuccess: (response) => {
             Alert.alert("Success", "Product added successfully");
-            sendNewProductNotification(response?.data?._id ?? "default-id", response?.data.title ?? "New Product");
+            sendPushNotification(response?.data?._id ?? "default-id", response?.data.title ?? "New Product");
             reset({
                 title: "",
                 description: "",
@@ -194,6 +195,8 @@ export const AddProduct = ({ navigation, route }: any) => {
         },
         onError: (error: any) => {
             Alert.alert("Error", error.message || "Failed to add product");
+            console.error("Error", error.message || "Failed to add product");
+
         },
     });
 

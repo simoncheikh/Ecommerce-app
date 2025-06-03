@@ -1,6 +1,6 @@
 import axios from "axios";
-import { API_BASE_URL } from "../../../constants/apiConfig";
 import { AddProductApiProps } from "./AddProductApi.type";
+import Config from "react-native-config";
 
 export const AddProductApi = async ({ 
     title, 
@@ -44,7 +44,7 @@ export const AddProductApi = async ({
 
     try {
         const response = await axios.post(
-            `${API_BASE_URL}/api/products`,
+            `${Config.REACT_APP_API_URL}/api/products`,
             formData,
             {
                 headers: {

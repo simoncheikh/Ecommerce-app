@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { styles } from "./SignUp.styles";
 import {
-  SafeAreaView,
   Text,
   View,
   TouchableOpacity,
@@ -22,6 +21,8 @@ import { CameraVision } from "../../components/molecules/Camera/cameraVision";
 import { PERMISSIONS, request, RESULTS } from "react-native-permissions";
 import { launchImageLibrary } from "react-native-image-picker";
 import { useMutation } from "@tanstack/react-query";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 const schema = z.object({
   firstName: z.string().min(2, { message: "FirstName must be at least 2 characters long" }),

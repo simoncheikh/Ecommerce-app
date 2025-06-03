@@ -1,18 +1,14 @@
-// ProductImage.test.tsx
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { ProductImage } from './ProductImage';
 
-// Mock the saveImageToGallery function
 jest.mock('../../../utils/SaveImageToGallery', () => ({
   saveImageToGallery: jest.fn(),
 }));
 
-// Mock react-native-reanimated
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
   
-  // Mock specific Reanimated functions you use
   Reanimated.useSharedValue = jest.fn(initial => ({ value: initial }));
   Reanimated.useAnimatedStyle = jest.fn(cb => cb());
   Reanimated.withTiming = jest.fn((value, config, callback) => {

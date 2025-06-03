@@ -4,8 +4,6 @@ import {
     Image,
     Modal,
     Platform,
-    SafeAreaView,
-    StyleSheet,
     Text,
     TouchableOpacity,
     View,
@@ -14,7 +12,7 @@ import { styles } from "./EditProfile.styles";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { API_BASE_URL } from "../../constants/apiConfig";
+import Config from "react-native-config";
 import { GetProfileApi } from "../../api/users/profile/getprofile/GetProfileApi";
 import { useAuthStore } from "../../store/sessionStore/AuthStore";
 import { Textfield } from "../../components/atoms/Textfield/Textfield";
@@ -29,6 +27,8 @@ import { launchImageLibrary } from "react-native-image-picker";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useThemeStore } from "../../store/themeStore/ThemeStore";
 import { useCameraStore } from "../../store/cameraStore/CameraStore";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 const schema = z.object({
     firstName: z.string().min(2, { message: "FirstName must be at least 2 characters long" }),
@@ -76,7 +76,7 @@ export const EditProfile = ({ navigation }: any) => {
             const user = profileData.data.user;
             setValue("firstName", user.firstName || "");
             setValue("lastName", user.lastName || "");
-            setValue("profileImage", user.profileImage?.url ? `${API_BASE_URL}${user.profileImage.url}` : "");
+            setValue("profileImage", user.profileImage?.url ? `${Config.REACT_APP_API_URL}${user.profileImage.url}` : "");
         }
     }, [profileData, setValue]);
 

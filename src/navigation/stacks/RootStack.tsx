@@ -28,7 +28,7 @@ export const RootStack = () => {
       if (url) {
         console.log("App launched via deep link:", url);
         setOpenFromDeepLinking(true);
-        setShowLanding(false); 
+        setShowLanding(false);
       }
     }
     checkInitialUrl();
@@ -37,15 +37,13 @@ export const RootStack = () => {
   return (
     <NavigationContainer linking={linking} ref={navigationRef}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {openFromDeepLinking || !showLanding ? (
+        {
           isLoggedIn ? (
             <Stack.Screen name="AuthStack" component={AuthStack} />
           ) : (
             <Stack.Screen name="UnAuthStack" component={UnAuthStack} />
           )
-        ) : (
-          <Stack.Screen name="LandingPage" component={LandingPage} />
-        )}
+        }
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -1,9 +1,9 @@
 import axios from "axios"
-import { API_BASE_URL } from "../../../constants/apiConfig"
+import Config from "react-native-config";
 
 export const GetProductApi = async (token: string | undefined, id: string) => {
     try {
-        const response = await axios.get(`${API_BASE_URL}/api/products/${id}`, {
+        const response = await axios.get(`${Config.REACT_APP_API_URL}/api/products/${id}`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },

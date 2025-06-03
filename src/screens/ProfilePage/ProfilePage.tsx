@@ -1,9 +1,9 @@
-import { Image, SafeAreaView, Text, TouchableOpacity, View, Linking, Alert, Platform, Pressable } from "react-native";
+import { Image, Text, TouchableOpacity, View, Linking, Alert, Platform, Pressable } from "react-native";
 import { styles } from './ProfilePage.styles';
 import { useCallback, useEffect, useState } from "react";
 import { GetProfileApi } from "../../api/users/profile/getprofile/GetProfileApi";
 import { useAuthStore } from "../../store/sessionStore/AuthStore";
-import { API_BASE_URL } from "../../constants/apiConfig";
+import Config from "react-native-config";
 import { Button } from "../../components/atoms/Button/Button";
 import { retry } from "../../utils/retry";
 import { useQuery } from "@tanstack/react-query";
@@ -11,6 +11,9 @@ import { useThemeStore } from "../../store/themeStore/ThemeStore";
 import { GlobalStyles } from "../../styles/GobalStyles";
 import { saveImageToGallery } from "../../utils/SaveImageToGallery";
 import { useFocusEffect } from "@react-navigation/native";
+import SkeletonPlaceholder from "react-native-skeleton-placeholder";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 export const ProfilePage = ({ navigation }: any) => {
     const theme = useThemeStore((state) => state.theme);
@@ -18,11 +21,11 @@ export const ProfilePage = ({ navigation }: any) => {
     const isLoggedIn = !!token;
     const isDarkMode = theme === 'dark';
 
-    const backgroundColor = isDarkMode 
-        ? GlobalStyles.theme.darkTheme.backgroundColor 
+    const backgroundColor = isDarkMode
+        ? GlobalStyles.theme.darkTheme.backgroundColor
         : GlobalStyles.theme.lightTheme.backgroundColor;
-    const textColor = isDarkMode 
-        ? GlobalStyles.theme.darkTheme.color 
+    const textColor = isDarkMode
+        ? GlobalStyles.theme.darkTheme.color
         : GlobalStyles.theme.lightTheme.color;
 
     const {
@@ -98,6 +101,8 @@ export const ProfilePage = ({ navigation }: any) => {
         openGmailCompose(userData.data.user.email);
     };
 
+
+
     if (!isLoggedIn || !token?.data?.accessToken) {
         return (
             <SafeAreaView style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
@@ -106,8 +111,24 @@ export const ProfilePage = ({ navigation }: any) => {
         );
     }
 
-    const profileImageUri = userData?.data?.user?.profileImage?.url 
-        ? `${API_BASE_URL}${userData.data.user.profileImage.url}`
+    if (userLoading) {
+        return (
+            <View style={[styles.container, { width: '100%', borderWidth: 1, elevation: 0 }]}>
+                <SkeletonPlaceholder>
+                    <SkeletonPlaceholder.Item flexDirection="column" alignItems="center" padding={10} gap={10} width={"100%"}>
+                        <SkeletonPlaceholder.Item width={'80%'} height={100} borderRadius={5} />
+                        <SkeletonPlaceholder.Item marginLeft={20}>
+                            <SkeletonPlaceholder.Item width={120} height={20} />
+                            <SkeletonPlaceholder.Item marginTop={6} width={80} height={20} />
+                        </SkeletonPlaceholder.Item>
+                    </SkeletonPlaceholder.Item>
+                </SkeletonPlaceholder>
+            </View>
+        );
+    }
+
+    const profileImageUri = userData?.data?.user?.profileImage?.url
+        ? `${Config.REACT_APP_API_URL}${userData.data.user.profileImage.url}`
         : undefined;
 
     return (

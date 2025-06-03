@@ -1,4 +1,4 @@
-import { Alert, FlatList, Image, SafeAreaView, Text, TouchableOpacity, View, StyleSheet } from "react-native";
+import { Alert, FlatList, Image, Text, TouchableOpacity, View } from "react-native";
 import { Swipeable } from 'react-native-gesture-handler';
 import { styles } from './ShopCart.style';
 import { Product } from "./ShopCart.type";
@@ -6,6 +6,8 @@ import { GlobalStyles } from "../../styles/GobalStyles";
 import { useCartStore } from "../../store/cartStore/cartStore";
 import { Animated } from 'react-native';
 import { useAuthStore } from "../../store/sessionStore/AuthStore";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 export const ShopCart = () => {
     const { items: products, removeFromCart, updateQuantity } = useCartStore();

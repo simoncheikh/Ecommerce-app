@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Button, SafeAreaView } from 'react-native';
+import { View, StyleSheet, Button } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE, MapPressEvent, Region } from 'react-native-maps';
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 type MapScreenProps = {
     route: {

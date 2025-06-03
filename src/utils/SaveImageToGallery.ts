@@ -59,7 +59,6 @@ export async function saveImageToGallery(imageUrl: string): Promise<void> {
       return;
     }
 
-    // 3. Handle remote vs local files
     const isRemote = imageUrl.startsWith('http');
     let localPath = imageUrl;
 
@@ -67,7 +66,6 @@ export async function saveImageToGallery(imageUrl: string): Promise<void> {
       const filename = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
       localPath = `${RNFS.CachesDirectoryPath}/${filename}`;
 
-      // Download the file
       const downloadResult = await RNFS.downloadFile({
         fromUrl: imageUrl,
         toFile: localPath,
@@ -78,12 +76,9 @@ export async function saveImageToGallery(imageUrl: string): Promise<void> {
       }
     }
 
-    // 4. Save to gallery
     if (Platform.OS === 'android' && Platform.Version >= 30) {
-      // Use MediaStore API for Android 11+
       await CameraRoll.saveToCameraRoll(localPath, 'photo');
     } else {
-      // Legacy method for older versions
       await CameraRoll.save(localPath, { type: 'photo', album: 'YourAppImages' });
     }
 

@@ -1,9 +1,11 @@
-import { SafeAreaView, View, Switch, Text } from 'react-native';
+import { View, Switch, Text } from 'react-native';
 import { styles } from './SettingsPage.style';
 import { useState } from 'react';
 import { useThemeStore } from '../../store/themeStore/ThemeStore';
 import { GlobalStyles } from '../../styles/GobalStyles';
 import { useAuthStore } from '../../store/sessionStore/AuthStore';
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 export const SettingsPage = () => {
     const theme = useThemeStore((state) => state.theme);

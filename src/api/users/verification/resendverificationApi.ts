@@ -1,9 +1,9 @@
 import axios from "axios";
-import { API_BASE_URL } from "../../../constants/apiConfig";
+import Config from "react-native-config";
 
 export const resendVerificationApi = async (email: string) => {
     try {
-        const response = await axios.post(`${API_BASE_URL}/api/auth/resend-verification-otp`, {
+        const response = await axios.post(`${Config.REACT_APP_API_URL}/api/auth/resend-verification-otp`, {
             email: email,
         });
         return { success: true, message: response.data.message };

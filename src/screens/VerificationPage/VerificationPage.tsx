@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import {
-    SafeAreaView,
     View,
     Text,
     TextInput,
@@ -19,6 +18,8 @@ import { resendVerificationApi } from "../../api/users/verification/resendverifi
 import { useMutation } from "@tanstack/react-query";
 import { useThemeStore } from "../../store/themeStore/ThemeStore";
 import { GlobalStyles } from "../../styles/GobalStyles";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 const codeSchema = z.object({
     code: z.array(z.string().length(1)).length(6),

@@ -6,7 +6,7 @@ import Animated, {
     withTiming,
 } from "react-native-reanimated";
 import { saveImageToGallery } from "../../../utils/SaveImageToGallery";
-import { API_BASE_URL } from "../../../constants/apiConfig";
+import Config from "react-native-config";
 import { styles } from "../../../screens/ProductDetails/ProductDetails.styles";
 
 export const ProductImage = ({ url }: { url: string }) => {
@@ -22,13 +22,13 @@ export const ProductImage = ({ url }: { url: string }) => {
         scale.value = withTiming(1.1, { duration: 1000 }, () => {
             scale.value = withTiming(1, { duration: 1000 });
         });
-        saveImageToGallery(`${API_BASE_URL}${url}`);
+        saveImageToGallery(`${Config.REACT_APP_API_URL}${url}`);
     };
 
     return (
         <Pressable onLongPress={handleLongPress}>
             <Animated.Image
-                source={{ uri: `${API_BASE_URL}${url}` }}
+                source={{ uri: `${Config.REACT_APP_API_URL}${url}` }}
                 style={[styles.image, animatedStyle]}
                 resizeMode="contain"
             />
