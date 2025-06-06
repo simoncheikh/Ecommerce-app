@@ -8,7 +8,7 @@ import { styles } from "./SignIn.styles";
 import { useAuthStore } from "../../store/sessionStore/AuthStore";
 import { GlobalStyles } from "../../styles/GobalStyles";
 import { useThemeStore } from "../../store/themeStore/ThemeStore";
-import { LoginApi } from '../../api/users/login/LoginApi';
+import { LoginApi } from "../../api/users/login/loginApi";
 import { useMutation } from "@tanstack/react-query";
 import { memo, useCallback, useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";

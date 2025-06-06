@@ -9,7 +9,7 @@ import {
   Modal,
 } from "react-native";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { GetAllProductsApi } from "../../api/products/getAllProducts/GetAllProductsApi";
+import { GetAllProductsApi } from "../../api/products/getAllProducts/getAllProductsApi";
 import { SearchProductApi } from "../../api/products/searchProduct/SearchProductApi";
 import { useAuthStore } from "../../store/sessionStore/AuthStore";
 import { useThemeStore } from "../../store/themeStore/ThemeStore";

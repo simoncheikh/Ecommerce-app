@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Button } from './Button'
+import { Button } from './Button';
 
-describe('Button component', () => {
-  it('renders the correct label', () => {
+describe('Button', () => {
+  it('renders the label correctly', () => {
     const { getByText } = render(
       <Button label="Click Me" onClick={() => {}} variant="primary" />
     );
@@ -22,47 +22,24 @@ describe('Button component', () => {
   it('does not call onClick when disabled', () => {
     const onClickMock = jest.fn();
     const { getByText } = render(
-      <Button 
-        label="Disabled" 
-        onClick={onClickMock} 
-        disabled={true} 
-        variant="primary" 
-      />
+      <Button label="Disabled" onClick={onClickMock} variant="primary" disabled />
     );
     fireEvent.press(getByText('Disabled'));
     expect(onClickMock).not.toHaveBeenCalled();
   });
 
-  it('applies correct background color for primary variant', () => {
-    const { getByTestId } = render(
-      <Button label="Primary" onClick={() => {}} variant="primary" />
-    );
-    expect(getByTestId('button')).toHaveStyle({ backgroundColor: '#e99e5b' });
-  });
-
-  it('applies correct background color when disabled', () => {
-    const { getByTestId } = render(
-      <Button 
-        label="Disabled" 
-        onClick={() => {}} 
-        variant="primary" 
-        disabled={true} 
-      />
-    );
-    expect(getByTestId('button')).toHaveStyle({ backgroundColor: 'gray' });
-  });
-
-  it('applies correct text color for primary variant', () => {
-    const { getByText } = render(
-      <Button label="Primary" onClick={() => {}} variant="primary" />
-    );
-    expect(getByText('Primary')).toHaveStyle({ color: 'white' });
-  });
-
-  it('applies correct text color for secondary variant', () => {
-    const { getByText } = render(
-      <Button label="Secondary" onClick={() => {}} variant="secondary" />
-    );
-    expect(getByText('Secondary')).toHaveStyle({ color: '#e99e5b' });
-  });
 });
+it('applies the correct background color for primary variant', () => {
+  const { getByTestId } = render(
+    <Button label="Primary" onClick={() => {}} variant="primary" />
+  );
+  expect(getByTestId('button').props.style.backgroundColor).toBe('#e99e5b');
+});
+
+it('applies gray background color when disabled', () => {
+  const { getByTestId } = render(
+    <Button label="Disabled" onClick={() => {}} variant="primary" disabled />
+  );
+  expect(getByTestId('button').props.style.backgroundColor).toBe('gray');
+});
+

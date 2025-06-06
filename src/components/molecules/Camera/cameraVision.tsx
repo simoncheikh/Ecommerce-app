@@ -81,9 +81,8 @@ export const CameraVision = ({
 
     if (!hasPermission) {
         return (
-            <Text>
-                Camera permission not granted.{" "}
-                <Text style={{ color: "blue" }} onPress={() => Linking.openSettings()}>
+            <Text testID="capture-button">
+                Camera permission not granted.<Text style={{ color: "blue" }} onPress={() => Linking.openSettings()}>
                     Open Settings
                 </Text>
             </Text>
@@ -126,6 +125,7 @@ export const CameraVision = ({
             </View>
             <View style={captureButtonStyle}>
                 <Pressable
+                    testID="capture-button"
                     onPress={takePhoto}
                     style={{
                         height: 80,

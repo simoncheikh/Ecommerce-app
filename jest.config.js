@@ -1,9 +1,23 @@
-/** @type {import('jest').Config} */
 module.exports = {
-  preset: "ts-jest",  // Use ts-jest for TypeScript testing
-  testEnvironment: "node",  // Run tests in a Node.js environment
-  clearMocks: true,
-  collectCoverage: true,
-  coverageDirectory: "coverage",
-  transformIgnorePatterns: ["node_modules/(?!react-native|react-native-vision-camera|react-native-skeleton-placeholder)"]
+  preset: 'react-native',
+  transform: {
+    '\\.[jt]sx?': 'babel-jest',
+  },
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'], // optional setup file
+  transformIgnorePatterns: [
+    'node_modules/(?!((jest-)?react-native' +
+      '|@react-native(-community)?' +
+      '|@react-navigation' +
+      '|@react-native-community' +
+      '|@react-native-vector-icons' +
+      '|react-native-count-message' +
+      '|react-native-image-picker' +
+      '|react-native-modal' +
+      '|react-native-reanimated' +
+      '|react-native-swiper' +
+      '|react-native-maps' +
+      ')/)'
+  ],
 };
+
