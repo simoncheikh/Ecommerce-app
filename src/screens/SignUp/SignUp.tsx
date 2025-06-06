@@ -267,13 +267,12 @@ export const SignUp = ({ navigation }: any) => {
             <Text style={styles.loginStyle}>Sign In</Text>
           </TouchableOpacity>
         </View>
-
-        <CameraVision
-          visible={cameraOpen}
-          onClose={() => setCameraOpen(false)}
-          onPhotoTaken={handlePhotoTaken}
-        />
       </ScrollView>
+      <CameraVision
+        visible={cameraOpen}
+        onClose={() => setCameraOpen(false)}
+        onPhotoTaken={handlePhotoTaken}
+      />
     </SafeAreaView>
   );
 };
