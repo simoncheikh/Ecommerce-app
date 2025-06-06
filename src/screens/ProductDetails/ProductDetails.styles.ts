@@ -13,6 +13,8 @@ export const styles = StyleSheet.create({
   scrollContainer: {
     // padding: 16,
   },
+  ownerContainer: { display: 'flex', flexDirection: "row",alignItems:"center" },
+  ownerText:{fontSize:16},
   email: {
     fontSize: 16,
     color: "#666",

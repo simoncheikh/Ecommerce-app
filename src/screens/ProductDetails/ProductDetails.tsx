@@ -293,7 +293,9 @@ export const ProductDetails = ({ route, navigation }: any) => {
                             <Text style={styles.editButton}>Edit Product</Text>
                         </TouchableOpacity>
                         <TouchableOpacity onPress={handleDeleteProduct}>
-                            <Text style={styles.editButton}>Delete Product</Text>
+                            <Text style={styles.editButton}>
+                                {deleteProductMutation?.isLoading ? "Deleting..." : "Delete Product"}
+                            </Text>
                         </TouchableOpacity>
                     </View>
                 )}
@@ -321,27 +323,14 @@ export const ProductDetails = ({ route, navigation }: any) => {
                         ${productData?.price?.toFixed(2)}
                     </Text>
                     <Text style={styles.stock}>In Stock</Text>
-                    {/* 
-                    <View style={styles.quantityContainer}>
-                        <Pressable style={styles.qtyButton} onPress={decreaseQuantity}>
-                            <Text style={styles.qtyText}>−</Text>
-                        </Pressable>
-                        <Text style={[styles.qtyCount, { color: isDark ? GlobalStyles.theme.darkTheme.color : GlobalStyles.theme.lightTheme.color }]}>
-                            {quantity}
-                        </Text>
-                        <Pressable style={styles.qtyButton} onPress={increaseQuantity}>
-                            <Text style={styles.qtyText}>+</Text>
-                        </Pressable>
-                    </View> */}
                     <QuantitySelector
                         quantity={quantity}
                         increase={increaseQuantity}
                         decrease={decreaseQuantity}
                         isDark={isDark}
                     />
-
-
-                    <View>
+                    <View style={styles.ownerContainer}>
+                        <Text style={[styles.ownerText, { color: isDark ? GlobalStyles.theme.darkTheme.color : GlobalStyles.theme.lightTheme.color }]}>Owner: </Text>
                         <Pressable onPress={handleEmailPress}>
                             <Text style={[styles.email, {
                                 textDecorationLine: "underline",

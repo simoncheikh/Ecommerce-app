@@ -62,63 +62,6 @@ export const ProfilePage = ({ navigation }: any) => {
 
     useFocusEffect(refetchProfile);
 
-    const openGmailCompose = async (email: string) => {
-        const gmailIntentUrl = `googlegmail://co?to=${email}`;
-        const mailtoUrl = `mailto:${email}`;
-        const gmailWebUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${email}`;
-
-        try {
-            if (Platform.OS === 'android') {
-                try {
-                    await Linking.openURL(gmailIntentUrl);
-                    return;
-                } catch (err) {
-                    console.warn("Gmail app not available");
-                }
-            }
-
-            try {
-                await Linking.openURL(mailtoUrl);
-                return;
-            } catch (err) {
-                console.warn("No mailto handler available");
-            }
-
-            try {
-                await Linking.openURL(gmailWebUrl);
-                return;
-            } catch (err) {
-                console.warn("Can't open Gmail web");
-            }
-
-            Alert.alert(
-                "No Email App Found",
-                "Please install Gmail or another email app, or open Gmail in a browser.",
-                [{ text: "OK" }]
-            );
-        } catch (err) {
-            console.error("Unexpected error opening email client", err);
-            Alert.alert(
-                "Error",
-                "Could not open any email client.",
-                [{ text: "OK" }]
-            );
-        }
-    };
-
-    const handleEmailPress = () => {
-        if (!userData?.data?.user?.email) {
-            crashlytics().log("Attempted to send email, but no email found");
-            return;
-        }
-
-        crashlytics().log(`User clicked email: ${userData.data.user.email}`);
-        openGmailCompose(userData.data.user.email);
-    };
-
-
-
-
     if (!isLoggedIn || !token?.data?.accessToken) {
         crashlytics().log("Unauthorized access attempt to ProfilePage");
         return (
@@ -131,7 +74,7 @@ export const ProfilePage = ({ navigation }: any) => {
 
     if (userLoading) {
         return (
-            <View style={[styles.container, { width: '100%', elevation: 0, backgroundColor: backgroundColor }]}>
+            <View style={[styles.container, { width: '100%', elevation: 0, paddingTop: '30%', backgroundColor: backgroundColor }]}>
                 <SkeletonPlaceholder>
                     <SkeletonPlaceholder.Item flexDirection="column" alignItems="center" padding={10} gap={10} width={"100%"}>
                         <SkeletonPlaceholder.Item width={'80%'} height={100} borderRadius={5} />
@@ -179,14 +122,11 @@ export const ProfilePage = ({ navigation }: any) => {
                 <Text style={[styles.name, { color: textColor }]}>
                     {userData?.data?.user?.firstName} {userData?.data?.user?.lastName}
                 </Text>
-                <TouchableOpacity onPress={handleEmailPress}>
-                    <Text style={[styles.email, {
-                        textDecorationLine: "underline",
-                        color: isDarkMode ? "#66b2ff" : "#0066cc",
-                    }]}>
-                        {userData?.data?.user?.email}
-                    </Text>
-                </TouchableOpacity>
+                <Text style={[styles.email, {
+                    color: isDarkMode ? "#66b2ff" : "#0066cc",
+                }]}>
+                    {userData?.data?.user?.email}
+                </Text>
                 <Text style={[styles.verified, { color: textColor }]}>
                     {userData?.data?.user?.isEmailVerified ? "✅ Verified Email" : "❌ Not Verified"}
                 </Text>
