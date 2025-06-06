@@ -21,10 +21,5 @@ export const AuthStack = () => (
       options={{ headerShown: false, animation: 'slide_from_bottom' }}
 
     />
-    <Stack.Screen
-      name="Map"
-      component={MapScreen}
-      options={{ animation: 'slide_from_bottom', headerShown: false }}
-    />
   </Stack.Navigator>
 );

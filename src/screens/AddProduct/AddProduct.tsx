@@ -16,13 +16,20 @@ import { AddProductApi } from "../../api/products/addProduct/AddProductApi";
 import { useMutation } from "@tanstack/react-query";
 import { useCameraStore } from "../../store/cameraStore/CameraStore";
 import { useThemeStore } from "../../store/themeStore/ThemeStore";
-import {sendPushNotification } from "../../utils/PushNotification";
+import { sendPushNotification } from "../../utils/PushNotification";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const schema = z.object({
     title: z.string().min(2, { message: "Title must be at least 2 characters long" }),
     description: z.string().min(2, { message: "Description must be at least 2 characters long" }),
-    price: z.string().min(2, { message: "Price must be a number greater than 0" }),
+    price: z
+        .string()
+        .refine((val) => !isNaN(Number(val)), {
+            message: "Price must be a valid number",
+        })
+        .refine((val) => Number(val) > 0, {
+            message: "Price must be greater than 0",
+        }),
     images: z
         .array(z.string().nonempty("Invalid image"))
         .max(2, "You can upload up to 2 images")
@@ -44,6 +51,7 @@ export const AddProduct = ({ navigation, route }: any) => {
     const [imageIndex, setImageIndex] = useState<number | null>(null);
     const [showPhotoOptions, setShowPhotoOptions] = useState(false);
     const [photoActionIndex, setPhotoActionIndex] = useState<number | null>(null);
+    const [showFullMap, setShowFullMap] = useState(false);
 
     const isDarkMode = theme === 'dark';
     const isLoggedIn = !!token;
@@ -79,16 +87,6 @@ export const AddProduct = ({ navigation, route }: any) => {
 
     const formValues = useMemo(() => control._formValues, [control._formValues]);
 
-    useEffect(() => {
-        if (route.params?.selectedLatitude && route.params?.selectedLongitude) {
-            setValue("location", {
-                ...getValues("location"),
-                latitude: route.params.selectedLatitude,
-                longitude: route.params.selectedLongitude,
-            }, { shouldValidate: true });
-        }
-    }, [route.params?.selectedLatitude, route.params?.selectedLongitude]);
-
     const handleBackAction = useCallback(() => {
         if (isCameraOpen) {
             setIsCameraOpen(false);
@@ -119,14 +117,14 @@ export const AddProduct = ({ navigation, route }: any) => {
         setValue("images", updated, { shouldValidate: true });
     }, [getValues, setValue]);
 
-    const handleNavigation = useCallback(() => {
-        navigation.navigate("Map", {
-            latitude: getValues("location").latitude || 33.5401,
-            longitude: getValues("location").longitude || 33.8342,
-            formData: getValues(),
-            source: 'AddProduct'
-        });
-    }, [getValues, navigation]);
+    // const handleNavigation = useCallback(() => {
+    //     navigation.navigate("Map", {
+    //         latitude: getValues("location").latitude || 33.5401,
+    //         longitude: getValues("location").longitude || 33.8342,
+    //         formData: getValues(),
+    //         source: 'AddProduct'
+    //     });
+    // }, [getValues, navigation]);
 
     const showPhotoSelection = useCallback((index: number | null = null) => {
         setPhotoActionIndex(index);
@@ -178,8 +176,6 @@ export const AddProduct = ({ navigation, route }: any) => {
     const mutation = useMutation({
         mutationFn: AddProductApi,
         onSuccess: (response) => {
-            Alert.alert("Success", "Product added successfully");
-            sendPushNotification(response?.data?._id ?? "default-id", response?.data.title ?? "New Product");
             reset({
                 title: "",
                 description: "",
@@ -191,7 +187,14 @@ export const AddProduct = ({ navigation, route }: any) => {
                     longitude: 0,
                 },
             });
-            navigation.goBack();
+            Alert.alert("Success", "Product added successfully");
+            sendPushNotification(response?.data?._id ?? "default-id", response?.data.title ?? "New Product");
+            navigation.setParams({
+                selectedLatitude: undefined,
+                selectedLongitude: undefined,
+                formData: undefined,
+            });
+            navigation.navigate('Home');
         },
         onError: (error: any) => {
             Alert.alert("Error", error.message || "Failed to add product");
@@ -224,6 +227,7 @@ export const AddProduct = ({ navigation, route }: any) => {
             accessToken: token.data.accessToken,
         });
     }, [mutation, token]);
+
 
     if (!isLoggedIn || !token?.data?.accessToken) {
         return (
@@ -259,20 +263,28 @@ export const AddProduct = ({ navigation, route }: any) => {
                     <Text style={[styles.label, { color: currentTheme.color }]}>Add Location</Text>
                     <Textfield control={control} name="location.name" placeholder="Location Name" />
 
-                    <Pressable onPress={handleNavigation} style={styles.mapContainer}>
+                    <Pressable onPress={() => setShowFullMap(true)} style={styles.mapContainer}>
                         <GoogleMaps
-                            longitude={getValues('location.longitude')}
-                            latitude={getValues('location.latitude')}
+                            fullscreen
+                            visible={showFullMap}
+                            latitude={getValues("location.latitude") || 33.5401}
+                            longitude={getValues("location.longitude") || 33.8342}
+                            onClose={() => setShowFullMap(false)}
+                            onLocationSelect={(lat, lng) => {
+                                setValue("location.latitude", lat, { shouldValidate: true });
+                                setValue("location.longitude", lng, { shouldValidate: true });
+                            }}
                         />
                     </Pressable>
 
-                    <View style={styles.inputGroup}>
+
+                    <View style={[styles.inputGroup, { backgroundColor: currentTheme.backgroundColor}]}>
                         <Text style={[styles.label, { color: currentTheme.color }]}>Product Images</Text>
-                        <View style={styles.ImagesContainer}>
+                        <View style={[styles.ImagesContainer, { backgroundColor: isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor,borderColor:'black' }]}>
                             {formValues.images.map((uri: string, index: number) => (
-                                <View key={index} style={{ position: "relative" }}>
+                                <View key={index} style={{ position: "relative", backgroundColor: isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor }}>
                                     <Image source={{ uri }} style={styles.profileImage} />
-                                    <TouchableOpacity style={styles.removeImage} onPress={() => handleRemovePhoto(index)}>
+                                    <TouchableOpacity style={[styles.removeImage, { backgroundColor: currentTheme.backgroundColor }]} onPress={() => handleRemovePhoto(index)}>
                                         <Text style={[styles.removeText, { color: currentTheme.color }]}>✕</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={() => showPhotoSelection(index)} style={styles.changeProfileImage}>
@@ -282,7 +294,7 @@ export const AddProduct = ({ navigation, route }: any) => {
                             ))}
 
                             {formValues.images.length < 2 && (
-                                <TouchableOpacity onPress={() => showPhotoSelection(null)} style={styles.addProfileImage}>
+                                <TouchableOpacity onPress={() => showPhotoSelection(null)} style={[styles.addProfileImage, { backgroundColor: currentTheme.backgroundColor }]}>
                                     <Text style={{ fontSize: 24, color: currentTheme.color }}>＋</Text>
                                 </TouchableOpacity>
                             )}

@@ -35,7 +35,7 @@ export const HomeTabs: React.FC = () => {
                     headerShown: false,
                     tabBarIcon: require('../../../assets/home.png'),
                 }}
-                
+
             />
             <Tab.Screen
                 name="Profile"
@@ -52,14 +52,10 @@ export const HomeTabs: React.FC = () => {
                     headerShown: true,
                     tabBarIcon: require('../../../assets//cart.png'),
                     headerTitle: 'My Cart',
-                    // headerStyle: { backgroundColor },
-                    // headerTitleStyle: {
-                    //     color: GlobalStyles.color.primary,
-                    //     fontFamily: GlobalStyles.fonts.regular.title,
-                    // },
-                    // headerBackTitleStyle: {
-                    //     fontFamily: GlobalStyles.fonts.regular.title,
-                    // },
+                    headerStyle: { backgroundColor },
+                    headerTitleStyle: {
+                        color: GlobalStyles.color.primary,
+                    },
                 }}
 
             />
@@ -73,10 +69,6 @@ export const HomeTabs: React.FC = () => {
                     headerStyle: { backgroundColor },
                     headerTitleStyle: {
                         color: GlobalStyles.color.primary,
-                        fontFamily: GlobalStyles.fonts.regular.title,
-                    },
-                    headerBackTitleStyle: {
-                        fontFamily: GlobalStyles.fonts.regular.title,
                     },
                     headerRight: () => (
                         <TouchableOpacity onPress={logout} style={{ marginRight: 15 }}>
@@ -92,7 +84,7 @@ export const HomeTabs: React.FC = () => {
             <Tab.Screen
                 name="ProductDetails"
                 component={ProductDetails}
-                options={{ headerShown: false}}
+                options={{ headerShown: false }}
             />
             <Tab.Screen
                 name="EditProfile"
@@ -112,7 +104,7 @@ export const HomeTabs: React.FC = () => {
                     headerTitle: 'Add Product',
                     headerShadowVisible: false,
                     headerTitleStyle: { color: GlobalStyles.color.primary },
-                    headerBackTitleStyle: { fontFamily: GlobalStyles.fonts.regular.title },
+                    headerStyle: { backgroundColor },
                 }}
             />
             <Tab.Screen
@@ -124,6 +116,7 @@ export const HomeTabs: React.FC = () => {
                     headerShadowVisible: false,
                     headerTitleStyle: { color: GlobalStyles.color.primary },
                     headerBackTitleStyle: { fontFamily: GlobalStyles.fonts.regular.title },
+                    headerStyle: { backgroundColor },
                 }}
             />
         </Tab.Navigator>

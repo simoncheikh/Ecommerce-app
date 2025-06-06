@@ -10,8 +10,9 @@ import { GlobalStyles } from "../../styles/GobalStyles";
 import { useThemeStore } from "../../store/themeStore/ThemeStore";
 import { LoginApi } from '../../api/users/login/LoginApi';
 import { useMutation } from "@tanstack/react-query";
-import { useCallback } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
+import crashlytics from '@react-native-firebase/crashlytics'
 
 
 const schema = z.object({
@@ -23,7 +24,8 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-export const SignIn = ({ navigation }: any) => {
+export const SignIn = memo(({ navigation }: any) => {
+  crashlytics().setAttribute('screen', 'SignIn');
   const {
     control,
     handleSubmit,
@@ -42,12 +44,15 @@ export const SignIn = ({ navigation }: any) => {
       LoginApi({ email: data.email, password: data.password, tokenExpire: "1y" }),
     onSuccess: (token) => {
       if (token) {
+        crashlytics().log('User logged in successfully');
         useAuthStore.getState().login(token);
       } else {
+        crashlytics().log('Login failed - invalid token received');
         Alert.alert("Login Failed", "Invalid username or password.");
       }
     },
-    onError: () => {
+    onError: (error) => {
+      crashlytics().recordError(new Error('Login API failed: ' + error.message));
       Alert.alert("Login Failed", "Something went wrong.");
     },
   });
@@ -104,4 +109,4 @@ export const SignIn = ({ navigation }: any) => {
       </View>
     </SafeAreaView>
   );
-};
+});

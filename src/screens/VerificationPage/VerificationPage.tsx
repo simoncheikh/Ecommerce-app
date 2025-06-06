@@ -19,6 +19,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useThemeStore } from "../../store/themeStore/ThemeStore";
 import { GlobalStyles } from "../../styles/GobalStyles";
 import { SafeAreaView } from "react-native-safe-area-context";
+import crashlytics from '@react-native-firebase/crashlytics'
 
 
 const codeSchema = z.object({
@@ -63,15 +64,21 @@ export const VerificationPage = ({ navigation, route }: any) => {
             verificationApi({ email, otp: codeString }),
         onSuccess: (res) => {
             if (res?.success) {
+                crashlytics().log("Verification successful");
                 navigation.navigate("SignIn");
             } else {
+                crashlytics().recordError(
+                    new Error("Verification failed: Invalid code")
+                );
                 setSubmitError("Invalid verification code");
                 reset({ code: ["", "", "", "", "", ""] });
                 inputs.current[0]?.focus();
             }
         },
         onError: (error) => {
-            console.error("Verification error:", error);
+            crashlytics().recordError(
+                new Error("Verification API error: " + error?.message)
+            );
             Alert.alert("Error", "Something went wrong. Please try again.");
         },
     });
@@ -81,19 +88,27 @@ export const VerificationPage = ({ navigation, route }: any) => {
         onSuccess: (res) => {
             setTimer(30);
             if (res.success) {
+                crashlytics().log("Resend verification successful");
                 Alert.alert("Success", res.message);
             } else {
+                crashlytics().recordError(
+                    new Error("Resend verification failed: " + res.message)
+                );
                 Alert.alert("Error", res.message);
             }
         },
         onError: (error) => {
-            console.error("Resend error:", error);
+            crashlytics().recordError(
+                new Error("Resend API error: " + error?.message)
+            );
             Alert.alert("Error", "Something went wrong while resending.");
         },
     });
 
+
     const onSubmit = useCallback((data: CodeForm) => {
         const codeString = data.code.join("");
+        crashlytics().log(`Attempting verification with code: ${codeString}`);
         verificationMutation.mutate(codeString);
     }, [verificationMutation]);
 

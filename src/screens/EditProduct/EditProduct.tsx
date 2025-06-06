@@ -16,7 +16,7 @@ import { PERMISSIONS, request, RESULTS } from "react-native-permissions";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import RNFS from 'react-native-fs';
 import { Button } from "../../components/atoms/Button/Button";
 import { Textfield } from "../../components/atoms/Textfield/Textfield";
@@ -31,12 +31,21 @@ import { useCameraStore } from "../../store/cameraStore/CameraStore";
 import { GlobalStyles } from "../../styles/GobalStyles";
 import { useThemeStore } from "../../store/themeStore/ThemeStore";
 import { SafeAreaView } from "react-native-safe-area-context";
+import crashlytics from '@react-native-firebase/crashlytics';
+
 
 
 const schema = z.object({
     title: z.string().min(2, { message: "Title must be at least 2 characters long" }),
     description: z.string().min(2, { message: "Description must be at least 2 characters long" }),
-    price: z.string().nonempty({ message: "Price must be a number greater than 0" }),
+    price: z
+        .string()
+        .refine((val) => !isNaN(Number(val)), {
+            message: "Price must be a valid number",
+        })
+        .refine((val) => Number(val) > 0, {
+            message: "Price must be greater than 0",
+        }),
     images: z
         .array(z.string().nonempty("Invalid image"))
         .max(2, "You can upload up to 2 images")
@@ -50,6 +59,8 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+  const queryClient = useQueryClient(); 
+
 export const EditProduct = ({ navigation, route }: any) => {
     const isCameraOpen = useCameraStore((state) => state.isCameraOpen);
     const setIsCameraOpen = useCameraStore((state) => state.setCameraOpen);
@@ -59,6 +70,7 @@ export const EditProduct = ({ navigation, route }: any) => {
     const [imageIndex, setImageIndex] = useState<number | null>(null);
     const [showPhotoOptions, setShowPhotoOptions] = useState(false);
     const [photoActionIndex, setPhotoActionIndex] = useState<number | null>(null);
+    const [showFullMap, setShowFullMap] = useState(false);
 
     const isLoggedIn = !!token;
     const isDarkMode = useMemo(() => theme === 'dark', [theme]);
@@ -119,6 +131,9 @@ export const EditProduct = ({ navigation, route }: any) => {
                     },
                 });
             }
+        } else {
+            crashlytics().recordError(new Error('Failed fetch API'))
+
         }
     }, [productData, reset, selectedLatitude, selectedLongitude]);
 
@@ -170,14 +185,6 @@ export const EditProduct = ({ navigation, route }: any) => {
         setValue("images", updated, { shouldValidate: true });
     }, [getValues, setValue]);
 
-    const handleNavigation = useCallback(() => {
-        navigation.navigate("Map", {
-            latitude: getValues("location").latitude || 33.5401,
-            longitude: getValues("location").longitude || 33.8342,
-            formData: getValues(),
-            source: "EditProduct"
-        });
-    }, [getValues, navigation]);
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('focus', () => {
@@ -205,54 +212,72 @@ export const EditProduct = ({ navigation, route }: any) => {
     }, [setIsCameraOpen]);
 
     const handleChooseFromLibrary = useCallback(async (index: number | null = null) => {
-        setShowPhotoOptions(false);
+        try {
+            setShowPhotoOptions(false);
 
-        let permissionResult;
-        if (Platform.OS === "ios") {
-            permissionResult = await request(PERMISSIONS.IOS.PHOTO_LIBRARY);
-        } else {
-            permissionResult = await request(PERMISSIONS.ANDROID.READ_MEDIA_IMAGES);
-        }
-
-        if (permissionResult !== RESULTS.GRANTED) {
-            Alert.alert("Permission Denied", "You need to allow access to your photos");
-            return;
-        }
-
-        const result = await launchImageLibrary({
-            mediaType: "photo",
-            quality: 1,
-            maxWidth: 1024,
-            maxHeight: 1024,
-        });
-
-        if (result.didCancel || !result.assets?.length) return;
-
-        const uri = result.assets[0].uri;
-        if (!uri) return;
-
-        const currentImages = getValues("images");
-        const newImages = [...currentImages];
-
-        if (index !== null) {
-            newImages[index] = uri;
-        } else {
-            if (newImages.length < 2) {
-                newImages.push(uri);
+            let permissionResult;
+            if (Platform.OS === "ios") {
+                permissionResult = await request(PERMISSIONS.IOS.PHOTO_LIBRARY);
+            } else {
+                permissionResult = await request(PERMISSIONS.ANDROID.READ_MEDIA_IMAGES);
             }
-        }
 
-        setValue("images", newImages, { shouldValidate: true });
-        setPhotoActionIndex(null);
+            if (permissionResult !== RESULTS.GRANTED) {
+                Alert.alert("Permission Denied", "You need to allow access to your photos");
+                crashlytics().log("Photo library permission denied");
+                return;
+            }
+
+            const result = await launchImageLibrary({
+                mediaType: "photo",
+                quality: 1,
+                maxWidth: 1024,
+                maxHeight: 1024,
+            });
+
+            if (result.didCancel) {
+                crashlytics().log("User canceled image picker");
+                return;
+            }
+
+            if (!result.assets?.length) {
+                crashlytics().recordError(new Error("Image picker returned empty assets array"));
+                return;
+            }
+
+            const uri = result.assets[0].uri;
+            if (!uri) {
+                crashlytics().recordError(new Error("Image asset missing URI"));
+                return;
+            }
+
+            const currentImages = getValues("images");
+            const newImages = [...currentImages];
+
+            if (index !== null) {
+                newImages[index] = uri;
+            } else {
+                if (newImages.length < 2) {
+                    newImages.push(uri);
+                }
+            }
+
+            setValue("images", newImages, { shouldValidate: true });
+            setPhotoActionIndex(null);
+        } catch (error) {
+            crashlytics().recordError(error instanceof Error ? error : new Error("Unknown error in handleChooseFromLibrary"));
+        }
     }, [getValues, setValue]);
 
     const editProductMutation = useMutation({
         mutationFn: (data: any) => EditProductApi(data),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["allProducts"] })
             Alert.alert("Success", "Product updated successfully");
             navigation.goBack();
         },
         onError: (error: any) => {
+            crashlytics().recordError(error)
             console.error("Edit Error:", error);
             Alert.alert("Error", error.message || "An error occurred.");
         },
@@ -290,7 +315,7 @@ export const EditProduct = ({ navigation, route }: any) => {
                 data.images.map(async (uri) => {
                     if (uri.startsWith('http')) {
                         const localUri = await downloadImageToLocal(uri);
-                        return { url: localUri, _id: "" }; 
+                        return { url: localUri, _id: "" };
                     } else if (uri.startsWith('file:')) {
                         return { url: uri, _id: "" };
                     } else if (uri.startsWith(Config.REACT_APP_API_URL)) {
@@ -301,7 +326,7 @@ export const EditProduct = ({ navigation, route }: any) => {
                             ? { _id: existingImage._id, url: existingImage.url }
                             : { url: uri, _id: "" };
                     }
-                    return { url: uri, _id: "" }; 
+                    return { url: uri, _id: "" };
                 })
             );
 
@@ -315,16 +340,18 @@ export const EditProduct = ({ navigation, route }: any) => {
                     longitude: data.location.longitude,
                     latitude: data.location.latitude,
                 },
-                images: processedImages, 
+                images: processedImages,
                 accessToken: token.data.accessToken,
             });
 
-        } catch (error) {
+        } catch (error: any) {
+            crashlytics().recordError(new Error(error))
             console.error("Error processing images:", error);
             Alert.alert("Error", "Failed to process images");
         }
     };
     if (!isLoggedIn || !token?.data?.accessToken) {
+        crashlytics().log('You need to be logged in')
         return (
             <SafeAreaView style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
                 <Text style={{ color: "red", fontSize: 16 }}>You must be logged in to view products.</Text>
@@ -373,7 +400,7 @@ export const EditProduct = ({ navigation, route }: any) => {
                         <Text style={[styles.label, { color: isDarkMode ? darkTheme.color : lightTheme.color }]}>
                             Price
                         </Text>
-                        <Textfield control={control} name="price" placeholder="Enter Price" type="numeric"/>
+                        <Textfield control={control} name="price" placeholder="Enter Price" type="numeric" />
                         {errors.price && (
                             <Text style={[styles.error, { color: 'red' }]}>{errors.price.message}</Text>
                         )}
@@ -384,10 +411,17 @@ export const EditProduct = ({ navigation, route }: any) => {
                     </Text>
                     <Textfield control={control} name="location.name" placeholder="Location Name" />
 
-                    <Pressable onPress={handleNavigation} style={styles.mapContainer}>
+                    <Pressable onPress={() => setShowFullMap(true)} style={styles.mapContainer}>
                         <GoogleMaps
-                            longitude={getValues('location').longitude}
-                            latitude={getValues('location').latitude}
+                            fullscreen
+                            visible={showFullMap}
+                            latitude={getValues("location.latitude") || 33.5401}
+                            longitude={getValues("location.longitude") || 33.8342}
+                            onClose={() => setShowFullMap(false)}
+                            onLocationSelect={(lat, lng) => {
+                                setValue("location.latitude", lat, { shouldValidate: true });
+                                setValue("location.longitude", lng, { shouldValidate: true });
+                            }}
                         />
                     </Pressable>
 

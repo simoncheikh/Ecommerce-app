@@ -13,11 +13,16 @@ export const styles = StyleSheet.create({
   scrollContainer: {
     // padding: 16,
   },
-  actionContainer:{
-    display:"flex",
-    flexDirection:"row",
-    height:'auto',
-    justifyContent:"space-between"
+  email: {
+    fontSize: 16,
+    color: "#666",
+    marginTop: 4,
+  },
+  actionContainer: {
+    display: "flex",
+    flexDirection: "row",
+    height: 'auto',
+    justifyContent: "space-between"
   },
   content: {
     padding: scale(20),

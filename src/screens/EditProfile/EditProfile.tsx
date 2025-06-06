@@ -28,6 +28,8 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useThemeStore } from "../../store/themeStore/ThemeStore";
 import { useCameraStore } from "../../store/cameraStore/CameraStore";
 import { SafeAreaView } from "react-native-safe-area-context";
+import crashlytics from '@react-native-firebase/crashlytics';
+
 
 
 const schema = z.object({
@@ -77,6 +79,8 @@ export const EditProfile = ({ navigation }: any) => {
             setValue("firstName", user.firstName || "");
             setValue("lastName", user.lastName || "");
             setValue("profileImage", user.profileImage?.url ? `${Config.REACT_APP_API_URL}${user.profileImage.url}` : "");
+        } else {
+            crashlytics().recordError(new Error('Failed fetch API'))
         }
     }, [profileData, setValue]);
 
@@ -98,7 +102,8 @@ export const EditProfile = ({ navigation }: any) => {
         setIsCameraOpen(false);
     };
 
-    const handleChooseFromLibrary = async () => {
+const handleChooseFromLibrary = async () => {
+    try {
         setShowPhotoOptions(false);
 
         const permission = Platform.OS === "ios"
@@ -107,6 +112,7 @@ export const EditProfile = ({ navigation }: any) => {
 
         const result = await request(permission);
         if (result !== RESULTS.GRANTED) {
+            crashlytics().log("Photo library permission denied");
             Alert.alert("Permission Denied", "You need to allow access to your photos.");
             return;
         }
@@ -122,7 +128,11 @@ export const EditProfile = ({ navigation }: any) => {
         if (uri) {
             setValue("profileImage", uri, { shouldValidate: true });
         }
-    };
+    } catch (error) {
+        crashlytics().recordError(error instanceof Error ? error : new Error("Unknown error in handleChooseFromLibrary"));
+    }
+};
+
 
     const handleRemovePhoto = () => {
         setValue("profileImage", "", { shouldValidate: true });
@@ -140,7 +150,8 @@ export const EditProfile = ({ navigation }: any) => {
             Alert.alert("User updated successfully");
             navigation.navigate("Home");
         },
-        onError: () => {
+        onError: (error: any) => {
+            crashlytics().recordError(new Error(error))
             Alert.alert("Error", "User didn't update");
         },
     });
@@ -150,12 +161,14 @@ export const EditProfile = ({ navigation }: any) => {
     };
 
     if (!token?.data?.accessToken) {
+        crashlytics().log("Access token missing on EditProfile screen");
         return (
             <SafeAreaView style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
                 <Text style={{ color: "red", fontSize: 16 }}>You must be logged in to view this page.</Text>
             </SafeAreaView>
         );
     }
+
 
     const currentTheme = isDarkMode ? darkTheme : lightTheme;
 

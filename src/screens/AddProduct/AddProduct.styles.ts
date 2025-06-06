@@ -115,7 +115,7 @@ export const styles = StyleSheet.create({
         color: 'red',
     },
     profileImageContainer: {
-        position: "relative"
+        position: "relative",
     },
     profileImages: {
         width: 100, height: 100, borderRadius: 8
@@ -142,6 +142,7 @@ export const styles = StyleSheet.create({
         borderRadius: 8,
         alignItems: "center",
         justifyContent: "center",
+        borderWidth: 0.2, elevation: 1
     },
     addText: {
         fontSize: 24

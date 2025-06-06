@@ -6,12 +6,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { OneSignal, LogLevel } from 'react-native-onesignal';
 import { navigate, sendPushNotification } from './src/utils/PushNotification';
 import BootSplash from "react-native-bootsplash";
+import crashlytics from '@react-native-firebase/crashlytics'
+import Config from 'react-native-config';
 
 const queryClient = new QueryClient();
 
 export default function App() {
   useEffect(() => {
-    OneSignal.initialize('0d9d7f69-5888-4518-8266-96839a7632d5');
+    OneSignal.initialize(`${Config.ONESIGNAL_API_ID}`);
 
     OneSignal.Debug.setLogLevel(6); // VERBOSE
 
@@ -22,7 +24,7 @@ export default function App() {
       console.log('Notification tapped. productId:', productId);
 
       if (productId) {
-        navigate('ProductDetails', { _id: productId });
+        navigate('ProductDetails', { productId: productId });
       }
     });
 
@@ -40,6 +42,10 @@ export default function App() {
       await BootSplash.hide({ fade: true });
       console.log("BootSplash has been hidden successfully");
     });
+  }, []);
+
+  useEffect(() => {
+    crashlytics().setCrashlyticsCollectionEnabled(true);
   }, []);
 
   return (

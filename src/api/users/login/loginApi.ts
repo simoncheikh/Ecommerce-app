@@ -3,6 +3,7 @@ import { LoginApiProps } from './LoginApi.type';
 import Config from 'react-native-config';
 
 export const LoginApi = async ({ email, password, tokenExpire }: LoginApiProps) => {
+    console.log(Config.REACT_APP_API_URL)
     try {
         const response = await axios.post(`${Config.REACT_APP_API_URL}/api/auth/login`, {
             email,

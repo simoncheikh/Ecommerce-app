@@ -13,6 +13,8 @@ import { saveImageToGallery } from "../../utils/SaveImageToGallery";
 import { useFocusEffect } from "@react-navigation/native";
 import SkeletonPlaceholder from "react-native-skeleton-placeholder";
 import { SafeAreaView } from "react-native-safe-area-context";
+import crashlytics from '@react-native-firebase/crashlytics';
+
 
 
 export const ProfilePage = ({ navigation }: any) => {
@@ -45,6 +47,14 @@ export const ProfilePage = ({ navigation }: any) => {
         refetchOnWindowFocus: true,
         refetchOnReconnect: true,
     });
+
+    useEffect(() => {
+        if (userError) {
+            crashlytics().log("Error fetching user profile data");
+            crashlytics().recordError(userError as Error);
+        }
+    }, [userError]);
+
 
     const refetchProfile = useCallback(() => {
         refetch();
@@ -97,13 +107,20 @@ export const ProfilePage = ({ navigation }: any) => {
     };
 
     const handleEmailPress = () => {
-        if (!userData?.data?.user?.email) return;
+        if (!userData?.data?.user?.email) {
+            crashlytics().log("Attempted to send email, but no email found");
+            return;
+        }
+
+        crashlytics().log(`User clicked email: ${userData.data.user.email}`);
         openGmailCompose(userData.data.user.email);
     };
 
 
 
+
     if (!isLoggedIn || !token?.data?.accessToken) {
+        crashlytics().log("Unauthorized access attempt to ProfilePage");
         return (
             <SafeAreaView style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
                 <Text style={{ color: "red", fontSize: 16 }}>You must be logged in to view profile.</Text>
@@ -111,9 +128,10 @@ export const ProfilePage = ({ navigation }: any) => {
         );
     }
 
+
     if (userLoading) {
         return (
-            <View style={[styles.container, { width: '100%', borderWidth: 1, elevation: 0 }]}>
+            <View style={[styles.container, { width: '100%', elevation: 0, backgroundColor: backgroundColor }]}>
                 <SkeletonPlaceholder>
                     <SkeletonPlaceholder.Item flexDirection="column" alignItems="center" padding={10} gap={10} width={"100%"}>
                         <SkeletonPlaceholder.Item width={'80%'} height={100} borderRadius={5} />
@@ -145,7 +163,14 @@ export const ProfilePage = ({ navigation }: any) => {
             </View>
 
             <View style={[styles.profileSection, { backgroundColor }]}>
-                <Pressable onLongPress={() => profileImageUri && saveImageToGallery(profileImageUri)}>
+                <Pressable
+                    onLongPress={() => {
+                        if (profileImageUri) {
+                            crashlytics().log("User long-pressed profile image to save");
+                            saveImageToGallery(profileImageUri);
+                        }
+                    }}
+                >
                     <Image
                         style={styles.profileImage}
                         source={{ uri: profileImageUri }}

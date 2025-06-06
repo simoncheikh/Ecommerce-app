@@ -33,7 +33,6 @@ export const useCartStore = create<CartStore>()(
         }),
         {
             name: 'cart-storage',
-            getStorage: () => AsyncStorage,
         }
     )
 );

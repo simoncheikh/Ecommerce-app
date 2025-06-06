@@ -6,14 +6,17 @@ const customFonts = GlobalStyles.fonts;
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: "5%",
+    padding: "20%",
     paddingTop: "30%",
     backgroundColor: "white",
   },
+  scrollContainer:{
+    // flex:1
+  },
   innerContainer: {
-    flex: 1,
+    flex: 0,
     justifyContent: "flex-start",
-    gap: "3%"
+    gap: "5%"
   },
   titleContainer: {
     display: "flex",

@@ -5,5 +5,7 @@ export type Product = {
   price: number;
   images: { url: string; _id: string }[];
   location: { longitude: number, latitude: number }
-  user: { _id: string }
+  user: {
+    email: any; _id: string
+  }
 };

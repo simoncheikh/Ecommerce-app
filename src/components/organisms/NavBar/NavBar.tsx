@@ -2,12 +2,12 @@ import { View, Switch, TouchableOpacity, Pressable, Image } from "react-native";
 import { styles } from "./NavBar.styles";
 import { SearchField } from "../../molecules/SearchField/SearchField";
 import { useThemeStore } from "../../../store/themeStore/ThemeStore";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { useAuthStore } from "../../../store/sessionStore/AuthStore";
 import { useSearchStore } from "../../../store/searchStore/searchStore";
 import { GlobalStyles } from "../../../styles/GobalStyles";
 
-export const NavBar = ({ }) => {
+export const NavBar = memo(({ refetch }: any) => {
   const { query, setQuery } = useSearchStore();
   const theme = useThemeStore((state) => state.theme)
 
@@ -32,10 +32,10 @@ export const NavBar = ({ }) => {
           <SearchField
             value={query}
             onChangeText={setQuery}
-            onClear={() => setQuery('')}
+            onClear={() => { setQuery(''), refetch }}
           />
         </View>
       </View>
     </View>
   );
-};
+});

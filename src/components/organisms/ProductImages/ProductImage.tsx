@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { Pressable } from "react-native";
 import Animated, {
     useSharedValue,
@@ -9,7 +9,7 @@ import { saveImageToGallery } from "../../../utils/SaveImageToGallery";
 import Config from "react-native-config";
 import { styles } from "../../../screens/ProductDetails/ProductDetails.styles";
 
-export const ProductImage = ({ url }: { url: string }) => {
+export const ProductImage = memo(({ url }: { url: string }) => {
     const scale = useSharedValue(1);
 
     const animatedStyle = useAnimatedStyle(() => {
@@ -34,4 +34,4 @@ export const ProductImage = ({ url }: { url: string }) => {
             />
         </Pressable>
     );
-};
+});

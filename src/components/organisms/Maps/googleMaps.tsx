@@ -1,38 +1,77 @@
-import { StyleSheet, View } from 'react-native';
-import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
+import React from "react";
+import { View, Modal, Pressable } from "react-native";
+import MapView, { Marker, MapPressEvent, PROVIDER_GOOGLE } from "react-native-maps";
+import { Button } from "../../atoms/Button/Button";
 
-const styles = StyleSheet.create({
-    container: {
-        height: 200,
-        width: '100%',
-        borderRadius: 12,
-        overflow: 'hidden',
-    },
-    map: {
-        ...StyleSheet.absoluteFillObject,
-    },
-});
+interface GoogleMapsProps {
+    latitude: number;
+    longitude: number;
+    fullscreen?: boolean;
+    visible?: boolean;
+    onClose?: () => void;
+    onLocationSelect?: (lat: number, lng: number) => void;
+}
 
-export const GoogleMaps = ({ longitude, latitude }: { longitude: number; latitude: number }) => (
-    <View style={styles.container}>
+export const GoogleMaps = ({ latitude,
+    longitude,
+    fullscreen = false,
+    visible = false,
+    onClose,
+    onLocationSelect, }: GoogleMapsProps) => {
+    const [selectedLatLng, setSelectedLatLng] = React.useState({ latitude, longitude });
+
+    if (fullscreen && visible) {
+        return (
+            <Modal visible animationType="slide">
+                <View style={{ flex: 1 }}>
+                    <MapView
+                        provider={PROVIDER_GOOGLE}
+                        style={{ flex: 1 }}
+                        initialRegion={{
+                            latitude,
+                            longitude,
+                            latitudeDelta: 0.01,
+                            longitudeDelta: 0.01,
+                        }}
+                        onPress={(e: MapPressEvent) => {
+                            const coords = e.nativeEvent.coordinate;
+                            setSelectedLatLng(coords);
+                        }}
+                    >
+                        <Marker coordinate={selectedLatLng} />
+                    </MapView>
+                    <View style={{ padding: 10 }}>
+                        <Button
+                            label="Done"
+                            onClick={() => {
+                                if (onLocationSelect) {
+                                    onLocationSelect(selectedLatLng.latitude, selectedLatLng.longitude);
+                                }
+                                onClose?.();
+                            }}
+                            variant="primary"
+                        />
+                        <Button label="Cancel" variant="secondary" onClick={onClose} />
+                    </View>
+                </View>
+            </Modal>
+        );
+    }
+
+    return (
         <MapView
             provider={PROVIDER_GOOGLE}
-            style={styles.map}
+            style={{ height: 150, borderRadius: 10 }}
             region={{
-                latitude: latitude,
-                longitude: longitude,
-                latitudeDelta: 0.015,
-                longitudeDelta: 0.0121,
+                latitude,
+                longitude,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
             }}
+            pointerEvents="none"
         >
-            <Marker
-                coordinate={{
-                    latitude: latitude,
-                    longitude: longitude,
-                }}
-                title="Product Location"
-                description="This is where the product is located"
-            />
+            <Marker coordinate={{ latitude, longitude }} />
         </MapView>
-    </View>
-);
+    );
+};
+

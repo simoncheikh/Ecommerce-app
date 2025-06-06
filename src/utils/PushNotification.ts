@@ -1,14 +1,15 @@
 import { createNavigationContainerRef } from '@react-navigation/native';
 import axios from 'axios';
+import Config from 'react-native-config';
 
 export const navigationRef = createNavigationContainerRef();
 
 export const sendPushNotification = async (productId: string, title: string) => {
   try {
     const response = await axios.post(
-      'https://onesignal.com/api/v1/notifications',
+      `${Config.ONESIGNAL_API_URL}`,
       {
-        app_id: '0d9d7f69-5888-4518-8266-96839a7632d5',
+        app_id: `${Config.ONESIGNAL_API_ID}`,
         included_segments: ['All'],
         headings: { en: 'New Product Added!' },
         contents: { en: title },
@@ -16,7 +17,7 @@ export const sendPushNotification = async (productId: string, title: string) => 
       },
       {
         headers: {
-          Authorization: 'os_v2_app_bwox62kyrbcrratgs2bzu5rs2udo5l5yw6zuuwmp3p5dwfkxyuhnioe2oudwdrsv2cgafeykekgje5xsfrdeso7lfjc7escngtd3i7q', // <- replace with your actual OneSignal REST API key
+          Authorization: `${Config.ONESIGNAL_REST_API}`, // <- replace with your actual OneSignal REST API key
           'Content-Type': 'application/json',
         },
       }

@@ -2,9 +2,6 @@ import { StyleSheet } from "react-native";
 import { GlobalStyles } from "../../styles/GobalStyles";
 
 
-const primaryColor = GlobalStyles.color.primary
-
-
 export const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -17,7 +14,6 @@ export const styles = StyleSheet.create({
         borderRadius: 16,
         padding: 12,
         marginBottom: 16,
-        shadowColor: primaryColor,
         shadowOpacity: 0.15,
         shadowRadius: 8,
         elevation: 4,

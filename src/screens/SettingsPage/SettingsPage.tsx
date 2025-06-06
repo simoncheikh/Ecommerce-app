@@ -5,6 +5,8 @@ import { useThemeStore } from '../../store/themeStore/ThemeStore';
 import { GlobalStyles } from '../../styles/GobalStyles';
 import { useAuthStore } from '../../store/sessionStore/AuthStore';
 import { SafeAreaView } from "react-native-safe-area-context";
+import crashlytics from '@react-native-firebase/crashlytics';
+
 
 
 export const SettingsPage = () => {
@@ -21,17 +23,24 @@ export const SettingsPage = () => {
     const lightTheme = GlobalStyles.theme.lightTheme
 
     const handleToggle = () => {
-        setValue(prev => !prev);
+        const newValue = !value;
+        setValue(newValue);
         toggleTheme();
+
+        crashlytics().log(`Theme toggled to ${newValue ? 'dark' : 'light'} mode`);
     };
 
+
     if (!isLoggedIn || !token?.data?.accessToken) {
+        crashlytics().log("Unauthorized access attempt to SettingsPage");
+
         return (
             <SafeAreaView style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
                 <Text style={{ color: "red", fontSize: 16 }}>You must be logged in to view products.</Text>
             </SafeAreaView>
         );
     }
+
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? darkTheme.backgroundColor : lightTheme.backgroundColor }]}>

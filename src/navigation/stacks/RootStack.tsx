@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { LandingPage } from '../../screens/LandingPage/LandingPage';
 import { AuthStack } from './AuthStack/AuthStack';
 import { UnAuthStack } from './UnAuthStack/UnAuthStack';
 import { useAuthStore } from '../../store/sessionStore/AuthStore';

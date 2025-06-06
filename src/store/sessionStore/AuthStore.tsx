@@ -1,6 +1,6 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import RNSecureStorage, { ACCESSIBLE } from 'rn-secure-storage';
 import { create } from 'zustand';
-import { persist, PersistStorage } from 'zustand/middleware';
+import { persist, createJSONStorage, StateStorage } from 'zustand/middleware';
 
 type TokenData = {
   accessToken: string;
@@ -14,16 +14,17 @@ type AuthState = {
   logout: () => void;
 };
 
-const zustandAsyncStorage: PersistStorage<AuthState> = {
-  getItem: async (name) => {
-    const value = await AsyncStorage.getItem(name);
-    return value ? JSON.parse(value) : null;
+const secureStorage: StateStorage = {
+  setItem: async (key, value) =>
+    await RNSecureStorage.setItem(key, value, {
+      accessible: ACCESSIBLE.WHEN_UNLOCKED,
+    }),
+  getItem: async (key) => {
+    const value = await RNSecureStorage.getItem(key);
+    return value ?? null;
   },
-  setItem: async (name, value) => {
-    await AsyncStorage.setItem(name, JSON.stringify(value));
-  },
-  removeItem: async (name) => {
-    await AsyncStorage.removeItem(name);
+  removeItem: async (key) => {
+    await RNSecureStorage.removeItem(key);
   },
 };
 
@@ -37,7 +38,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
-      storage: zustandAsyncStorage, 
+      storage: createJSONStorage(() => secureStorage),
     }
   )
 );

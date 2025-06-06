@@ -8,6 +8,7 @@ import {
     ViewStyle,
     Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
     Camera,
     useCameraDevice,
@@ -29,9 +30,13 @@ export const CameraVision = ({
 }: CameraVisionProps) => {
     const camera = useRef<Camera>(null);
     const { hasPermission, requestPermission } = useCameraPermission();
-    const device = useCameraDevice("front");
+    const frontDevice = useCameraDevice('front');
+    const backDevice = useCameraDevice('back');
+
     const [isCameraInitialized, setIsCameraInitialized] = useState(false);
-    
+    const [currentCameraPosition, setCurrentCameraPosition] = useState<CameraPosition>('front');
+
+    const device = currentCameraPosition === 'front' ? frontDevice : backDevice;
 
     const handleCameraPermission = useCallback(async () => {
         if (!hasPermission) {
@@ -68,6 +73,10 @@ export const CameraVision = ({
         }
     };
 
+    const toggleCamera = () => {
+        setCurrentCameraPosition(prev => prev === 'front' ? 'back' : 'front');
+    };
+
     if (!visible) return null;
 
     if (!hasPermission) {
@@ -96,7 +105,7 @@ export const CameraVision = ({
     };
 
     return (
-        <View style={StyleSheet.absoluteFill} testID="mock-camera">
+        <SafeAreaView style={StyleSheet.absoluteFill} testID="mock-camera">
             <Camera
                 ref={camera}
                 style={StyleSheet.absoluteFill}
@@ -108,6 +117,13 @@ export const CameraVision = ({
                 onError={(error) => console.error("Camera error:", error)}
                 testID="mock-camera"
             />
+            <View style={{ position: "absolute", top: 50, left: 20 }}>
+                <Pressable onPress={toggleCamera}>
+                    <Text style={{ color: "white", fontSize: 18 }}>
+                        Switch to {currentCameraPosition === "front" ? "Back" : "Front"} Camera
+                    </Text>
+                </Pressable>
+            </View>
             <View style={captureButtonStyle}>
                 <Pressable
                     onPress={takePhoto}
@@ -119,6 +135,6 @@ export const CameraVision = ({
                     }}
                 />
             </View>
-        </View>
+        </SafeAreaView>
     );
 };
